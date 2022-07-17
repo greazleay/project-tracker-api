@@ -5,10 +5,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserDecorator } from './decorators/user.decorator';
 import { Role } from './interfaces/user.interface';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { ResetPasswordDto, ValidEmailDto } from './dto/common-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 import { SkipAuth } from '../auth/decorators/skip-auth.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @ApiTags('User')
 @Controller('v1/users')
@@ -25,7 +25,7 @@ export class UserController {
 
     @Get('userinfo')
     @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard, RolesGuard(Role.USER))
+    @Roles(Role.ADMIN)
     findOne(@UserDecorator('id') id: string) {
         return this.usersService.findOneById(id);
     }

@@ -14,6 +14,7 @@ import { RedisClientOptions } from 'redis';
 import { User } from './user/entities/user.entity';
 import { Project } from './project/entities/project.entity';
 import configuration from './config/configuration';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -67,6 +68,10 @@ import configuration from './config/configuration';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     {
       provide: APP_INTERCEPTOR,

@@ -3,6 +3,7 @@ import { compare, hash } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
+import { Project } from '../../project/entities/project.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
 
 
@@ -53,6 +54,9 @@ export class User extends AbstractEntity {
 
     @Column('varchar', { nullable: true })
     personalKey: string;
+
+    @ManyToMany(() => Project, project => project.members)
+    projects: Project[]
 
     @BeforeInsert()
     async hashPassword() {
