@@ -5,7 +5,7 @@ import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { Project } from '../../project/entities/project.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
-import { ProjectAccess } from 'src/project/interfaces/project.interface';
+import { ProjectAccess } from '../../project/entities/project-access.entity';
 
 
 @Entity()
@@ -47,9 +47,6 @@ export class User extends AbstractEntity {
     })
     roles: Role[];
 
-    @Column('enum', { enum: ProjectAccess, default: ProjectAccess.VIEWER })
-    projectAccessType: ProjectAccess
-
     @Column('jsonb', { nullable: true, default: {} })
     resetPassword: IResetPassword;
 
@@ -59,8 +56,8 @@ export class User extends AbstractEntity {
     @Column('varchar', { nullable: true })
     personalKey: string;
 
-    @ManyToMany(() => Project, project => project.members)
-    projects: Project[]
+    @OneToMany(() => ProjectAccess, projectAccess => projectAccess.user)
+    projects: ProjectAccess[]
 
     @BeforeInsert()
     async hashPassword() {

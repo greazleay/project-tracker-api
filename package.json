@@ -26,6 +26,7 @@
     "migration:revert": "yarn typeorm migration:revert"
   },
   "dependencies": {
+    "@casl/ability": "^5.4.4",
     "@fastify/cookie": "^7.2.0",
     "@nestjs/common": "^9.0.3",
     "@nestjs/config": "^2.2.0",

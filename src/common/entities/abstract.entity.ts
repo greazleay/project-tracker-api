@@ -1,6 +1,7 @@
 import {
     BaseEntity,
     CreateDateColumn,
+    DeleteDateColumn,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
     VersionColumn
@@ -15,6 +16,9 @@ export abstract class AbstractEntity extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     @VersionColumn()
     version: number;

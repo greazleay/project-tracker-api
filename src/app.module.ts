@@ -13,15 +13,13 @@ import * as redisStore from 'cache-manager-redis-store';
 import { RedisClientOptions } from 'redis';
 import { User } from './user/entities/user.entity';
 import { Project } from './project/entities/project.entity';
+import { ProjectAccess } from './project/entities/project-access.entity';
 import configuration from './config/configuration';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
-    AuthModule,
-    UserModule,
-    ProjectModule,
-
     ConfigModule.forRoot({
       cache: true,
       isGlobal: true,
@@ -36,7 +34,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Project, User],
+        entities: [Project, ProjectAccess, User],
         migrations: ['dist/migrations/*.js'],
         migrationsTableName: 'migrations_history',
         synchronize: true,    // Auto-Sync currently enabled here because of -d /path-to-datasource option issue with typeorm:generate in package.json scripts for typeorm version ^0.3.x
@@ -61,6 +59,11 @@ import { RolesGuard } from './auth/guards/roles.guard';
       }),
       inject: [ConfigService]
     }),
+
+    AuthModule,
+    UserModule,
+    ProjectModule,
+    CaslModule,
   ],
   controllers: [AppController],
   providers: [
