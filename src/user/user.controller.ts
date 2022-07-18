@@ -8,7 +8,7 @@ import { Role } from './interfaces/user.interface';
 import { ResetPasswordDto, ValidEmailDto } from './dto/common-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 import { SkipAuth } from '../auth/decorators/skip-auth.decorator';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('User')
 @Controller('v1/users')

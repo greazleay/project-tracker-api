@@ -2,8 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { ProjectAccessType } from './decorators/project-access.decorator';
+import { ProjectAccess } from './interfaces/project.interface';
 
-@Controller('project')
+@ApiTags('Projects')
+@Controller('/v1/projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
@@ -12,7 +16,8 @@ export class ProjectController {
     return this.projectService.create(createProjectDto);
   }
 
-  @Get()
+  @Get('all')
+  @ProjectAccessType(ProjectAccess.VIEWER)
   findAll() {
     return this.projectService.findAll();
   }

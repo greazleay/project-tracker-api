@@ -5,6 +5,7 @@ import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { Project } from '../../project/entities/project.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
+import { ProjectAccess } from 'src/project/interfaces/project.interface';
 
 
 @Entity()
@@ -45,6 +46,9 @@ export class User extends AbstractEntity {
         array: true,
     })
     roles: Role[];
+
+    @Column('enum', { enum: ProjectAccess, default: ProjectAccess.VIEWER })
+    projectAccessType: ProjectAccess
 
     @Column('jsonb', { nullable: true, default: {} })
     resetPassword: IResetPassword;

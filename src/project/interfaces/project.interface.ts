@@ -1,0 +1,6 @@
+export enum ProjectAccess {
+    MANAGER = 'MANAGER',
+    COLLABORATOR = 'COLLABORATOR',
+    VIEWER = 'VIEWER',
+    MANAGEMENT = 'ADMINISTRATION_OFFICE'
+}

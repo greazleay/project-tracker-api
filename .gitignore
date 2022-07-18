@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Token and Secret Generation
+src/utils/generateData.ts
