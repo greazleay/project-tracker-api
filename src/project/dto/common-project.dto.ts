@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsEnum, IsString, IsUUID, MinLength, ValidateNested } from 'class-validator';
-import { AccessType } from '../interfaces/project.interface';
+import { AccessType, ProjectPriority, ProjectStatus } from '../interfaces/project.interface';
 
 export class ProjectIdDto {
     @ApiProperty()
@@ -57,4 +57,26 @@ export class ModifyProjectMemberAccessDto {
     @ArrayNotEmpty()
     @Type(() => ProjectMemberDto)
     readonly membersToModify: ProjectMemberDto[]
+}
+
+export class UpdateProjectStatusDto {
+    @ApiProperty()
+    @IsUUID(4)
+    readonly projectId: string;
+
+    @ApiProperty()
+    @IsEnum(ProjectStatus)
+    projectStatus: ProjectStatus
+
+}
+
+export class UpdateProjectPriorityDto {
+    @ApiProperty()
+    @IsUUID(4)
+    readonly projectId: string;
+
+    @ApiProperty()
+    @IsEnum(ProjectPriority)
+    projectPriority: ProjectPriority
+
 }

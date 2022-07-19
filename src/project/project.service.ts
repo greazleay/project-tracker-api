@@ -17,7 +17,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { AccessType } from './interfaces/project.interface';
 import { Action } from '../casl/dto/casl.dto';
 import { CaslAbilityFactory } from '../casl/casl-ability.factory';
-import { AddProjectMembersDto, ModifyProjectMemberAccessDto, RemoveProjectMembersDto } from './dto/common-project.dto';
+import { AddProjectMembersDto, ModifyProjectMemberAccessDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -92,7 +92,7 @@ export class ProjectService {
         .where('project.id = :id', { id })
         .getOne();
 
-      if (!project) throw new NotFoundException(`Project with name: ${id} not found on this server`);
+      if (!project) throw new NotFoundException(`Project with ID: ${id} not found on this server`);
 
       // Check if the user has required read permission on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
@@ -111,17 +111,17 @@ export class ProjectService {
     }
   }
 
-  async findOneByName(name: string, user: User): Promise<Project> {
+  async findOneByName(projectName: string, user: User): Promise<Project> {
     try {
 
       // Check if Project with specified name exists and load it's members
       const project = await this.projectRepository
         .createQueryBuilder('project')
         .leftJoinAndSelect('project.members', 'member')
-        .where('project.projectName = :name', { name })
+        .where('project.projectName = :projectName', { projectName })
         .getOne()
 
-      if (!project) throw new NotFoundException(`Project with name: ${name} not found on this server`);
+      if (!project) throw new NotFoundException(`Project with name: ${projectName} not found on this server`);
 
       // Load Project Access and Check if the user has required read permission on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id })
@@ -129,7 +129,7 @@ export class ProjectService {
 
       if (ability.can(Action.Read, projectAccess)) return project;
 
-      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
 
     } catch (error) {
       console.error(error);
@@ -153,7 +153,7 @@ export class ProjectService {
 
       if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
 
-      // Load Project Access and Check if the user has required read permission on the project
+      // Load Project Access and Check if the user has required read/write permissions on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id })
       const ability = this.caslAbilityFactory.createForUser(user, project)
 
@@ -205,7 +205,7 @@ export class ProjectService {
 
       if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
 
-      // Load Project Access and Check if the user has required read permission on the project
+      // Load Project Access and Check if the user has required read/write permissions on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
@@ -253,7 +253,7 @@ export class ProjectService {
 
       if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
 
-      // Load Project Access and Check if the user has required read permission on the project
+      // Load Project Access and Check if the user has required read/write permission on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
@@ -286,12 +286,74 @@ export class ProjectService {
     }
   }
 
+  async updateProjectStatus(updateProjectStatusDto: UpdateProjectStatusDto, user: User) {
+    try {
+
+      const { projectId, projectStatus } = updateProjectStatusDto;
+
+      // Check if Project exists
+      const project = await this.projectRepository.findOneBy({ id: projectId })
+      if (!project) throw new NotFoundException(`Project with Id: ${projectId} not found on this server`);
+
+      // Load Project Access and Check if the user has required write permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id })
+      const ability = this.caslAbilityFactory.createForUser(user, project)
+
+      if (ability.can(Action.Update, projectAccess)) {
+        project.projectStatus = projectStatus;
+        await this.projectRepository.save(project);
+
+        return { status: 'SUCCESS', message: `${project.projectName} project status updated successfully` }
+      };
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateProjectPriority(updateProjectStatusDto: UpdateProjectPriorityDto, user: User) {
+    try {
+
+      const { projectId, projectPriority } = updateProjectStatusDto;
+
+      // Check if Project exists
+      const project = await this.projectRepository.findOneBy({ id: projectId })
+      if (!project) throw new NotFoundException(`Project with Id: ${projectId} not found on this server`);
+
+      // Load Project Access and Check if the user has required read/write permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id })
+      const ability = this.caslAbilityFactory.createForUser(user, project)
+
+      if (ability.can(Action.Update, projectAccess)) {
+        project.projectPriority = projectPriority;
+        await this.projectRepository.save(project);
+
+        return { status: 'SUCCESS', message: `${project.projectName} project priority updated successfully` }
+      };
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
 
   update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+    return `This action updates a #${id} project, NOT YET IMPLEMENTED`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} project`;
+    return `This action removes a #${id} project, NOT YET IMPLEMENETED`;
   }
 }

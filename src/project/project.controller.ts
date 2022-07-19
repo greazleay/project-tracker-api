@@ -18,7 +18,7 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/interfaces/user.interface';
-import { AddProjectMembersDto, ModifyProjectMemberAccessDto, ProjectIdDto, ProjectNameDto, RemoveProjectMembersDto } from './dto/common-project.dto';
+import { AddProjectMembersDto, ModifyProjectMemberAccessDto, ProjectIdDto, ProjectNameDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
 
 
 @ApiTags('Projects')
@@ -62,6 +62,16 @@ export class ProjectController {
   @Patch('modify-project-member-access')
   async modifyProjectMemberAccess(@Body() modifyProjectAccessDto: ModifyProjectMemberAccessDto, @UserDecorator() user: User) {
     return await this.projectService.modifyMembersProjectAccess(modifyProjectAccessDto, user)
+  }
+
+  @Patch('update-project-status')
+  async updateProjectStatus(@Body() updateProjectStatusDto: UpdateProjectStatusDto, @UserDecorator() user: User) {
+    return await this.projectService.updateProjectStatus(updateProjectStatusDto, user)
+  }
+
+  @Patch('update-project-priority')
+  async updateProjectPriority(@Body() updateProjectPriorityDto: UpdateProjectPriorityDto, @UserDecorator() user: User) {
+    return await this.projectService.updateProjectPriority(updateProjectPriorityDto, user)
   }
 
   @Patch(':id')
