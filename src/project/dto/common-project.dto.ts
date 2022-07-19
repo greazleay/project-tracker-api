@@ -46,3 +46,15 @@ export class RemoveProjectMembersDto {
     @ArrayNotEmpty()
     readonly membersToRemove: string[]
 }
+
+export class ModifyProjectMemberAccessDto {
+    @ApiProperty()
+    @IsUUID(4)
+    readonly projectId: string;
+
+    @ApiProperty()
+    @ValidateNested({ each: true })
+    @ArrayNotEmpty()
+    @Type(() => ProjectMemberDto)
+    readonly membersToModify: ProjectMemberDto[]
+}

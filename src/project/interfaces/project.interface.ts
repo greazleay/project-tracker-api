@@ -21,11 +21,3 @@ export enum ProjectPriority {
     MEDIUM = 'MEDIUM',
     LOW = 'LOW'
 }
-
-export enum Action {
-    Manage = 'manage',
-    Create = 'create',
-    Read = 'read',
-    Update = 'update',
-    Delete = 'delete',
-}

@@ -9,7 +9,8 @@ import {
 import { User } from '../user/entities/user.entity';
 import { Project } from '../project/entities/project.entity';
 import { ProjectAccess } from '../project/entities/project-access.entity';
-import { Action, AccessType } from '../project/interfaces/project.interface'
+import { AccessType } from '../project/interfaces/project.interface';
+import { Action } from './dto/casl.dto';
 import { Role } from 'src/user/interfaces/user.interface';
 
 type Subjects = InferSubjects<typeof Project | typeof User | typeof ProjectAccess> | 'all';
