@@ -76,8 +76,12 @@ export class ProjectService {
   async findOne(id: string, user: User) {
     try {
 
-      // Load the Project and Project Access
-      const project = await this.projectRepository.findOneBy({ id });
+      // Load the Project with it's members and Project Access
+      const project = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .where('project.id = :id', { id })
+        .getOne()
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
 
       // Check if the user has required permission read the project

@@ -1,11 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginateQuery } from 'nestjs-paginate';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { PaginateQuery } from 'nestjs-paginate';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../user/interfaces/user.interface';
+
 
 @ApiTags('Projects')
 @Controller('/v1/projects')
@@ -18,6 +30,7 @@ export class ProjectController {
   }
 
   @Get('all')
+  @Roles(Role.ADMIN)
   findAll(@Query() query: PaginateQuery) {
     return this.projectService.findAll(query);
   }
