@@ -13,14 +13,15 @@ export class AuthService {
         private usersService: UserService,
         private jwtService: JwtService,
         private readonly configService: ConfigService,
-        @InjectRepository(User) private readonly usersRepository: Repository<User>,
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
     ) { }
 
     async validateUser(email: string, pass: string): Promise<User> {
         try {
             const user = await this.usersService.findOneByEmail(email);
             if (user && await user.isPasswordValid(pass)) {
-                await this.usersRepository.update(user.id, { lastLogin: new Date() });
+                user.lastLogin = new Date();
+                await this.userRepository.save(user);
                 return user;
             };
             throw new UnauthorizedException('Invalid Credentials');
@@ -31,7 +32,7 @@ export class AuthService {
 
     async validateJwt(sub: string): Promise<any> {
         try {
-            const user = await this.usersRepository.findOneBy({ id: sub });
+            const user = await this.userRepository.findOneBy({ id: sub });
             if (user) {
                 const { refreshToken, resetPassword, ...data } = user;
                 return data;
@@ -77,9 +78,9 @@ export class AuthService {
 
     async logout(user: User) {
         try {
-            const logOutUser = await this.usersRepository.findOneBy({ id: user.id });
+            const logOutUser = await this.userRepository.findOneBy({ id: user.id });
             const personalKey = await logOutUser.generatePersonalKey();
-            await this.usersRepository.update(user.id, { personalKey });
+            await this.userRepository.save(user);
         } catch (error) {
             console.error(error);
             throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
@@ -90,7 +91,7 @@ export class AuthService {
         try {
             if (!token) throw new BadRequestException('Refresh Token cannot be empty');
             const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
-            const user = await this.usersRepository.findOneBy({ id: decoded.sub });
+            const user = await this.userRepository.findOneBy({ id: decoded.sub });
             if (user && user.validatePersonalKey(decoded.rtk)) {
                 return await this.login(user);
             };

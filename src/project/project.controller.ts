@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/interfaces/user.interface';
+import { AddProjectMembersDto, ProjectIdDto, ProjectNameDto } from './dto/common-project.dto';
 
 
 @ApiTags('Projects')
@@ -25,19 +27,31 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @Post('create')
-  create(@Body() createProjectDto: CreateProjectDto, @UserDecorator() user: User) {
-    return this.projectService.create(createProjectDto, user);
+  async create(@Body() createProjectDto: CreateProjectDto, @UserDecorator() user: User) {
+    return await this.projectService.create(createProjectDto, user);
+  }
+
+  @Put('add-project-member')
+  async addMemberToProject(@Body() addProjectmember: AddProjectMembersDto, @UserDecorator() user: User) {
+    return await this.projectService.addProjectMember(addProjectmember, user)
   }
 
   @Get('all')
   @Roles(Role.ADMIN)
-  findAll(@Query() query: PaginateQuery) {
-    return this.projectService.findAll(query);
+  async findAll(@Query() query: PaginateQuery) {
+    return await this.projectService.findAll(query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @UserDecorator() user: User) {
-    return this.projectService.findOne(id, user);
+  @Get('get-by-name')
+  async findOneByName(@Query() query: ProjectNameDto, @UserDecorator() user: User) {
+    const { projectName } = query;
+    return await this.projectService.findOneByName(projectName, user);
+  }
+
+  @Get('get-by-id/:projectId')
+  async findOneById(@Param() params: ProjectIdDto, @UserDecorator() user: User) {
+    const { projectId } = params;
+    return await this.projectService.findOneById(projectId, user);
   }
 
   @Patch(':id')
