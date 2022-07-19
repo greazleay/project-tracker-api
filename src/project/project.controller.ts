@@ -18,7 +18,17 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/interfaces/user.interface';
-import { AddProjectMembersDto, ModifyProjectMemberAccessDto, ProjectIdDto, ProjectNameDto, ProjectStatusDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
+import {
+  AddProjectMembersDto,
+  ModifyProjectMemberAccessDto,
+  ProjectIdDto,
+  ProjectNameDto,
+  ProjectPriorityDto,
+  ProjectStatusDto,
+  RemoveProjectMembersDto,
+  UpdateProjectPriorityDto,
+  UpdateProjectStatusDto
+} from './dto/common-project.dto';
 
 
 @ApiTags('Projects')
@@ -32,6 +42,11 @@ export class ProjectController {
     return await this.projectService.findAll(query);
   }
 
+  @Get('all-by-user')
+  async findAllByUser(@UserDecorator('id') id: string) {
+    return await this.projectService.findAllProjectsByUser(id)
+  }
+
   @Get('get-by-name')
   async findOneByName(@Query() query: ProjectNameDto, @UserDecorator() user: User) {
     const { projectName } = query;
@@ -39,9 +54,17 @@ export class ProjectController {
   }
 
   @Get('get-by-status')
-  async findByProjectStatus(@Query() status: ProjectStatusDto, @Query() query: PaginateQuery) {
-    const { projectStatus } = status;
+  @Roles(Role.ADMIN)
+  async findByProjectStatus(@Query() statusQuery: ProjectStatusDto, @Query() query: PaginateQuery) {
+    const { projectStatus } = statusQuery;
     return await this.projectService.findProjectByStatus(projectStatus, query);
+  }
+
+  @Get('get-by-priority')
+  @Roles(Role.ADMIN)
+  async findByProjectPriority(@Query() priorityQuery: ProjectPriorityDto, @Query() query: PaginateQuery) {
+    const { projectPriority } = priorityQuery;
+    return await this.projectService.findProjectByPriority(projectPriority, query);
   }
 
   @Get('get-by-id/:projectId')

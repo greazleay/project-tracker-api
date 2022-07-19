@@ -19,12 +19,11 @@ export class ProjectAccess {
     @PrimaryGeneratedColumn('uuid')
     public ProjectAccessId!: string;
 
-    @Exclude()
-    @Column()
-    public projectId!: string;
-
     @Column()
     public userId!: string;
+
+    @Column()
+    public projectId!: string;
 
     @Column('enum', { enum: AccessType, default: AccessType.VIEWER })
     accessType: AccessType;

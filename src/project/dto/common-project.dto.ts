@@ -86,3 +86,9 @@ export class ProjectStatusDto {
     @IsEnum(ProjectStatus)
     projectStatus: ProjectStatus
 }
+
+export class ProjectPriorityDto {
+    @ApiProperty()
+    @IsEnum(ProjectPriority)
+    projectPriority: ProjectPriority
+}

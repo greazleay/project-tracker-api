@@ -105,6 +105,29 @@ export class ProjectService {
     }
   }
 
+  async findProjectByPriority(projectPriority: string, query: PaginateQuery) {
+    try {
+
+      // Check if there are projects with matching priority and load it's members
+      const queryBuilder = this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .where('project.projectPriority = :projectPriority', { projectPriority })
+
+      return paginate<Project>(query, queryBuilder, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
 
   async findOneById(id: string, user: User): Promise<Project> {
     try {
@@ -155,6 +178,24 @@ export class ProjectService {
 
       throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
 
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAllProjectsByUser(userId: string) {
+    try {
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.projects', 'project')
+        .where('user.id = :userId', { userId })
+        .getOne()
+
+      return user.projects
     } catch (error) {
       console.error(error);
       throw new HttpException(
