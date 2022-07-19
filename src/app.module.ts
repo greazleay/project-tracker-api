@@ -14,9 +14,12 @@ import { RedisClientOptions } from 'redis';
 import { User } from './user/entities/user.entity';
 import { Project } from './project/entities/project.entity';
 import { ProjectAccess } from './project/entities/project-access.entity';
+import { Issue } from './issue/entities/issue.entity';
 import configuration from './config/configuration';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CaslModule } from './casl/casl.module';
+import { IssueModule } from './issue/issue.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -34,7 +37,7 @@ import { CaslModule } from './casl/casl.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Project, ProjectAccess, User],
+        entities: [Project, ProjectAccess, Issue, User],
         migrations: ['dist/migrations/*.js'],
         migrationsTableName: 'migrations_history',
         synchronize: true,    // Auto-Sync currently enabled here because of -d /path-to-datasource option issue with typeorm:generate in package.json scripts for typeorm version ^0.3.x
@@ -60,10 +63,16 @@ import { CaslModule } from './casl/casl.module';
       inject: [ConfigService]
     }),
 
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
+
     AuthModule,
     UserModule,
     ProjectModule,
     CaslModule,
+    IssueModule,
   ],
   controllers: [AppController],
   providers: [
@@ -80,6 +89,10 @@ import { CaslModule } from './casl/casl.module';
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
 })
 export class AppModule {

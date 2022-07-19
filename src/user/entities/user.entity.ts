@@ -1,11 +1,11 @@
-import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, Column, BeforeInsert, OneToMany } from 'typeorm';
 import { compare, hash } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
-import { Project } from '../../project/entities/project.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
 import { ProjectAccess } from '../../project/entities/project-access.entity';
+import { Issue } from '../../issue/entities/issue.entity';
 
 
 @Entity()
@@ -58,6 +58,12 @@ export class User extends AbstractEntity {
 
     @OneToMany(() => ProjectAccess, projectAccess => projectAccess.user)
     projects: ProjectAccess[]
+
+    @OneToMany(() => Issue, issue => issue.openedBy)
+    openedIssues: Issue[]
+
+    @OneToMany(() => Issue, issue => issue.closedBy)
+    closedIssues: Issue[]
 
     @BeforeInsert()
     async hashPassword() {

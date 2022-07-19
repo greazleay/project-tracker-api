@@ -1,8 +1,8 @@
-import { Column, Entity, JoinTable, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
-import { User } from '../../user/entities/user.entity';
 import { ProjectAccess } from './project-access.entity';
 import { ProjectPriority, ProjectStatus } from '../interfaces/project.interface';
+import { Issue } from '../../issue/entities/issue.entity';
 
 @Entity()
 export class Project extends AbstractEntity {
@@ -21,5 +21,8 @@ export class Project extends AbstractEntity {
 
     @OneToMany(() => ProjectAccess, projectAccess => projectAccess.project)
     members: ProjectAccess[];
+
+    @OneToMany(() => Issue, issue => issue.project)
+    projectIssues: Issue[]
 
 }
