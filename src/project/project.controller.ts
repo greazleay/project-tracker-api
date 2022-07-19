@@ -18,7 +18,7 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/interfaces/user.interface';
-import { AddProjectMembersDto, ProjectIdDto, ProjectNameDto } from './dto/common-project.dto';
+import { AddProjectMembersDto, ProjectIdDto, ProjectNameDto, RemoveProjectMembersDto } from './dto/common-project.dto';
 
 
 @ApiTags('Projects')
@@ -32,8 +32,13 @@ export class ProjectController {
   }
 
   @Put('add-project-member')
-  async addMemberToProject(@Body() addProjectmember: AddProjectMembersDto, @UserDecorator() user: User) {
-    return await this.projectService.addProjectMember(addProjectmember, user)
+  async addMemberToProject(@Body() addProjectMembersDto: AddProjectMembersDto, @UserDecorator() user: User) {
+    return await this.projectService.addProjectMember(addProjectMembersDto, user);
+  }
+
+  @Put('remove-project-member')
+  async removeMemberFromProject(@Body() removeProjectMembersDto: RemoveProjectMembersDto, @UserDecorator() user: User) {
+    return await this.projectService.removeProjectMember(removeProjectMembersDto, user);
   }
 
   @Get('all')

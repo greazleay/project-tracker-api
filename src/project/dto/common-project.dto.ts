@@ -35,3 +35,14 @@ export class AddProjectMembersDto {
     @Type(() => ProjectMemberDto)
     readonly membersToAdd: ProjectMemberDto[]
 }
+
+export class RemoveProjectMembersDto {
+    @ApiProperty()
+    @IsUUID(4)
+    readonly projectId: string;
+
+    @ApiProperty()
+    @IsUUID(4, { each: true })
+    @ArrayNotEmpty()
+    readonly membersToRemove: string[]
+}

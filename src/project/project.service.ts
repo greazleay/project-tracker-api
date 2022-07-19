@@ -9,7 +9,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { AccessType, Action } from './interfaces/project.interface';
 import { CaslAbilityFactory } from '../casl/casl-ability.factory';
 import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { AddProjectMembersDto } from './dto/common-project.dto';
+import { AddProjectMembersDto, RemoveProjectMembersDto } from './dto/common-project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -132,9 +132,9 @@ export class ProjectService {
     }
   }
 
-  async addProjectMember(addProjectMembers: AddProjectMembersDto, user: User) {
+  async addProjectMember(addProjectMembersDto: AddProjectMembersDto, user: User) {
     try {
-      const { projectId, membersToAdd } = addProjectMembers;
+      const { projectId, membersToAdd } = addProjectMembersDto;
 
       // Check if Project with the specified ID exists and load it's members
       const project = await this.projectRepository
@@ -151,6 +151,7 @@ export class ProjectService {
 
       if (ability.can(Action.Manage, projectAccess)) {
 
+        // Loop through membersToAdd Array and check for matching conditions
         for (const member of membersToAdd) {
 
           // Check if member is already added to the project and skip
@@ -170,6 +171,54 @@ export class ProjectService {
         }
 
         return { status: 'SUCCESS', message: `Specified members added to ${project.projectName} project` }
+      }
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async removeProjectMember(removeProjectMembersDto: RemoveProjectMembersDto, user: User) {
+    try {
+      const { projectId, membersToRemove } = removeProjectMembersDto;
+
+      // Check if Project with the specified ID exists and load it's members
+      const project = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .where('project.id = :projectId', { projectId })
+        .getOne();
+
+      if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
+
+      // Load Project Access and Check if the user has required read permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
+      const ability = this.caslAbilityFactory.createForUser(user, project);
+
+      if (ability.can(Action.Manage, projectAccess)) {
+
+        // Loop through membersToRemove Array and check for matching conditions
+        for (const member of membersToRemove) {
+
+          // Check if member doesn't belong to the project and skip
+          if (!project.members.some(item => item.userId === member)) continue;
+
+          // Check Whether member exists on the Server  
+          const user = await this.userRepository.findOneBy({ id: member });
+          if (!user) throw new NotFoundException(`User with id: ${member} does not exist on this server`);
+
+          // Remove member from Project
+          const removeMemberFromProject = await this.projectAccessRepository.findOne({ where: { projectId: project.id, userId: member } });
+          await this.projectAccessRepository.remove(removeMemberFromProject);
+        }
+
+        return { status: 'SUCCESS', message: `Specified members Removed from ${project.projectName} project` };
       }
 
       throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
