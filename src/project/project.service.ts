@@ -82,6 +82,30 @@ export class ProjectService {
     }
   }
 
+  async findProjectByStatus(projectStatus: string, query: PaginateQuery) {
+    try {
+
+      // Check if there are projects with matching status and load it's members
+      const queryBuilder = this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .where('project.projectStatus = :projectStatus', { projectStatus })
+
+      return paginate<Project>(query, queryBuilder, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
   async findOneById(id: string, user: User): Promise<Project> {
     try {
 

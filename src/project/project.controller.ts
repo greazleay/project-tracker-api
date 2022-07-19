@@ -18,7 +18,7 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/interfaces/user.interface';
-import { AddProjectMembersDto, ModifyProjectMemberAccessDto, ProjectIdDto, ProjectNameDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
+import { AddProjectMembersDto, ModifyProjectMemberAccessDto, ProjectIdDto, ProjectNameDto, ProjectStatusDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
 
 
 @ApiTags('Projects')
@@ -36,6 +36,12 @@ export class ProjectController {
   async findOneByName(@Query() query: ProjectNameDto, @UserDecorator() user: User) {
     const { projectName } = query;
     return await this.projectService.findOneByName(projectName, user);
+  }
+
+  @Get('get-by-status')
+  async findByProjectStatus(@Query() status: ProjectStatusDto, @Query() query: PaginateQuery) {
+    const { projectStatus } = status;
+    return await this.projectService.findProjectByStatus(projectStatus, query);
   }
 
   @Get('get-by-id/:projectId')
