@@ -1,20 +1,22 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { UserDecorator } from '../user/decorators/user.decorator';
+import { User } from '../user/entities/user.entity';
 
 @ApiTags('Issues')
-@Controller('issue')
+@Controller('v1/issues')
 export class IssueController {
   constructor(private readonly issueService: IssueService) {}
 
-  @Post()
-  create(@Body() createIssueDto: CreateIssueDto) {
-    return this.issueService.create(createIssueDto);
+  @Post('open-new-issue')
+  async create(@Body() createIssueDto: CreateIssueDto, @UserDecorator() user: User) {
+    return await this.issueService.create(createIssueDto, user);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.issueService.findAll();
   }

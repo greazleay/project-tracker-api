@@ -57,10 +57,13 @@ export class User extends AbstractEntity {
     personalKey: string;
 
     @OneToMany(() => ProjectAccess, projectAccess => projectAccess.user)
-    projects: ProjectAccess[]
+    projects: ProjectAccess[];
 
     @OneToMany(() => Issue, issue => issue.openedBy)
-    openedIssues: Issue[]
+    openedIssues: Issue[];
+
+    @OneToMany(() => Issue, issue => issue.assignedTo)
+    assignedIssues: Issue[];
 
     @OneToMany(() => Issue, issue => issue.closedBy)
     closedIssues: Issue[]

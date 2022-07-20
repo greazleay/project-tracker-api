@@ -31,6 +31,9 @@ export class Issue extends AbstractEntity {
     @Column('timestamp without time zone')
     dueDate: Date;
 
+    @ManyToOne(() => User, user => user.assignedIssues)
+    assignedTo: User
+
     @ManyToOne(() => User, user => user.closedIssues)
     closedBy: User
 

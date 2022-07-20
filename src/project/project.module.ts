@@ -13,6 +13,7 @@ import { CaslModule } from '../casl/casl.module';
     UserModule,
     CaslModule
   ],
+  exports: [ProjectService],
   controllers: [ProjectController],
   providers: [ProjectService]
 })
