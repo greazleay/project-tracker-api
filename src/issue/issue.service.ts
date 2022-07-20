@@ -1,8 +1,10 @@
 import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { ProjectService } from '../project/project.service';
 import { User } from '../user/entities/user.entity';
+import { ReassignIssueDto } from './dto/common-issue.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Issue } from './entities/issue.entity';
@@ -54,14 +56,94 @@ export class IssueService {
     }
   }
 
-  async reassignIssue() {}
+  async reassignIssue(reassignIssueDto: ReassignIssueDto, user: User) {
+    try {
 
-  findAll() {
-    return `This action returns all issue`;
+      const { projectId, issueId, userToReassignTo } = reassignIssueDto;
+
+      // Check if the project exists and user has required update right on the project
+      const project = await this.projectService.manageProjectIssues(projectId, user);
+
+      // Check if specified isseId exists on the project
+      if (!project.projectIssues.some(issue => issue.id === issueId))
+        throw new ConflictException(`Issue with ID: '${issueId}' does not exist on ${project.projectName} project`);
+
+      const issueToUpdate = await this.issueRepository
+        .createQueryBuilder('issue')
+        .leftJoinAndSelect('issue.assignedTo', 'assignedTo')
+        .where('issue.id = :issueId', { issueId })
+        .select([
+          'issue.id',
+          'assignedTo.id'
+        ])
+        .getOne()
+
+      if (issueToUpdate.assignedTo.id === userToReassignTo)
+        throw new ConflictException(`Issue already assigned to User with ID: ${userToReassignTo}`);
+
+      issueToUpdate.assignedTo = await this.userRepository.findOneBy({ id: userToReassignTo });
+
+      await this.issueRepository.save(issueToUpdate)
+
+      return { status: 'SUCCESS', message: `Issue Reassigned to user with ID ${userToReassignTo}` }
+
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} issue`;
+  async findAll(query: PaginateQuery): Promise<Paginated<Issue>> {
+    try {
+      return await paginate(query, this.issueRepository, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findOne(id: string, projectId: string, user: User) {
+    try {
+
+      // Check if the project exists and user has required read right on the project
+      await this.projectService.findOneById(projectId, user);
+
+      return await this.issueRepository
+        .createQueryBuilder('issue')
+        .leftJoinAndSelect('issue.assignedTo', 'assignedTo')
+        .where('issue.id = :id', { id })
+        .select([
+          'issue.id',
+          'issue.description',
+          'issue.issueTitle',
+          'issue.issueType',
+          'issue.issuePriority',
+          'issue.issueStatus',
+          'issue.dueDate',
+          'issue.createdAt',
+          'issue.updatedAt',
+          'issue.dateClosed',
+          'issue.resolutionSummary',
+          'assignedTo.id'
+        ])
+        .getOne()
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   update(id: number, updateIssueDto: UpdateIssueDto) {
