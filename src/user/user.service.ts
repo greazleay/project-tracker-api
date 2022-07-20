@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
@@ -25,35 +26,64 @@ export class UserService {
     private readonly emailService: EmailService
   ) { }
 
+  async findAll(query: PaginateQuery): Promise<Paginated<User>> {
+    try {
+
+      return await paginate(query, this.usersRepository, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async findOneByEmail(email: string): Promise<User> {
     try {
       const foundUser = await this.usersRepository.findOneBy({ email });
-      if (foundUser) {
-        return foundUser;
-      };
+
+      if (foundUser) return foundUser;
+
       throw new UnauthorizedException('Invalid Credentials');
     } catch (error) {
       console.error(error)
-      throw new HttpException(error.message, error.status);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
-  async findOneById(id: string): Promise<any> {
+  async findOneById(id: string): Promise<Partial<User>> {
     try {
       const foundUser = await this.usersRepository.findOneBy({ id });
+
       if (foundUser) {
+
         const { refreshToken, resetPassword, password, personalKey, ...data } = foundUser;
         return data;
+
       };
+
       throw new NotFoundException(`User with id: ${id} does not exist on this server`);
+
     } catch (error) {
-      console.error(error.message)
-      throw new HttpException(error.message, error.status);
+      console.error(error)
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
+
       const isUserExist = await this.usersRepository.findOneBy({ email: createUserDto.email })
       if (isUserExist) throw new ConflictException(`User with ${createUserDto.email} already exists`);
 
@@ -61,63 +91,102 @@ export class UserService {
       await this.usersRepository.save(newUser);
 
       return newUser;
+
     } catch (error) {
-      console.error(error.message)
-      throw new HttpException(error.message, error.status);
+      console.error(error)
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
-  async getVerificationCode(email: string): Promise<{}> {
+  async getVerificationCode(email: string): Promise<{ status: string, message: string }> {
     try {
+
       const foundUser = await this.usersRepository.findOneBy({ email });
+
       if (foundUser) {
+
         const code = await foundUser.generatePasswordResetCode()
+
         const mailOptions: SendMailOptions = [
           email,
           'Verification code',
           `Your verification code is ${code}`,
           getVerificationEmailTemplate(foundUser.firstName, foundUser.lastName, code)
         ];
+
         await this.emailService.sendEmail(...mailOptions)
+
         return {
-          statusCode: 200,
-          message: `Success!!! Verification Code Sent to ${email}`
+          status: 'SUCCESS',
+          message: `Verification Code Sent to ${email}`
         };
+
       }
-      throw new NotFoundException(`User with email: ${email} not found on this server`)
+
+      throw new NotFoundException(`User with email: ${email} not found on this server`);
+
     } catch (error) {
       console.error(error)
-      throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ status: string, message: string }> {
     try {
-      const { email, code, password } = resetPasswordDto
+
+      const { email, code, password } = resetPasswordDto;
+
       const foundUser = await this.usersRepository.findOneBy({ email });
+
       if (foundUser && await foundUser.verifyPasswordResetCode(code)) {
-        await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });
-        return true;
+
+        foundUser.password = await foundUser.hashPasswordBeforeUpdate(password)
+        await this.usersRepository.save(foundUser);
+
+        return { status: 'SUCCESS', message: 'Password Reset Successful' };
       }
+
       throw new ForbiddenException('Verification code is invalid or it has expired')
+
     } catch (error) {
       console.error(error)
-      throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
-  async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto): Promise<boolean> {
+  async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto): Promise<{ status: string, message: string }> {
     try {
+
       const foundUser = await this.usersRepository.findOneBy({ id })
+
       if (foundUser) {
+
         const { password } = changePasswordDto;
-        await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });
-        return true;
+
+        foundUser.password = await foundUser.hashPasswordBeforeUpdate(password)
+
+        await this.usersRepository.save(foundUser);
+
+        return { status: 'SUCCESS', message: 'Password Change Successful' };
       }
+
       throw new NotFoundException(`User with ${id} not found on this server`)
+
     } catch (error) {
       console.error(error)
-      throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -127,8 +196,11 @@ export class UserService {
       await this.usersRepository.delete(id);
       return { statusCode: 200, message: 'User deleted' };
     } catch (error) {
-      console.error(error.message)
-      throw new HttpException(error.message, error.status);
+      console.error(error)
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 }

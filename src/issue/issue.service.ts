@@ -1,10 +1,10 @@
-import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { ProjectService } from '../project/project.service';
 import { User } from '../user/entities/user.entity';
-import { ReassignIssueDto } from './dto/common-issue.dto';
+import { IssueIdAndProjectIdDto, IssueTitleAndProjectIdDto, ReassignIssueDto } from './dto/common-issue.dto';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Issue } from './entities/issue.entity';
@@ -112,16 +112,19 @@ export class IssueService {
     }
   }
 
-  async findOne(id: string, projectId: string, user: User) {
+  async findOneById(issueIdAndProjectIdDto: IssueIdAndProjectIdDto, user: User) {
     try {
+
+      const { issueId, projectId } = issueIdAndProjectIdDto;
 
       // Check if the project exists and user has required read right on the project
       await this.projectService.findOneById(projectId, user);
 
-      return await this.issueRepository
+      const issue = await this.issueRepository
         .createQueryBuilder('issue')
         .leftJoinAndSelect('issue.assignedTo', 'assignedTo')
-        .where('issue.id = :id', { id })
+        .leftJoinAndSelect('issue.project', 'project')
+        .where('issue.id = :issueId', { issueId })
         .select([
           'issue.id',
           'issue.description',
@@ -134,9 +137,61 @@ export class IssueService {
           'issue.updatedAt',
           'issue.dateClosed',
           'issue.resolutionSummary',
+          'project.id',
+          'project.projectName',
+          'project.projectStatus',
           'assignedTo.id'
         ])
         .getOne()
+
+      if (!issue) throw new NotFoundException(`Issue with ID: ${issueId} not found in Project with ID: ${projectId}`)
+
+      return issue;
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findOneByTitle(issueTitleAndProjectIdDto: IssueTitleAndProjectIdDto, user: User) {
+    try {
+
+      const { issueTitle, projectId } = issueTitleAndProjectIdDto;
+      // Check if the project exists and user has required read right on the project
+      await this.projectService.findOneById(projectId, user);
+
+      const issue = await this.issueRepository
+        .createQueryBuilder('issue')
+        .leftJoinAndSelect('issue.assignedTo', 'assignedTo')
+        .leftJoinAndSelect('issue.project', 'project')
+        .where('issue.issueTitle = :issueTitle', { issueTitle })
+        .select([
+          'issue.id',
+          'issue.description',
+          'issue.issueTitle',
+          'issue.issueType',
+          'issue.issuePriority',
+          'issue.issueStatus',
+          'issue.dueDate',
+          'issue.createdAt',
+          'issue.updatedAt',
+          'issue.dateClosed',
+          'issue.resolutionSummary',
+          'project.id',
+          'project.projectName',
+          'project.projectStatus',
+          'assignedTo.id'
+        ])
+        .getOne()
+
+      if (!issue) throw new NotFoundException(`Issue with title: '${issueTitle}' not found in Project with ID: ${projectId}`)
+
+      return issue;
+
     } catch (error) {
       console.error(error);
       throw new HttpException(

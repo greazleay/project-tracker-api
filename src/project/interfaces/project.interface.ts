@@ -2,7 +2,6 @@ export enum AccessType {
     MANAGER = 'MANAGER',
     COLLABORATOR = 'COLLABORATOR',
     VIEWER = 'VIEWER',
-    MANAGEMENT = 'ADMINISTRATION_OFFICE'
 }
 
 export enum ProjectStatus {

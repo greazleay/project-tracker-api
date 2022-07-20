@@ -37,7 +37,7 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @Get('all')
-  @Roles(Role.ADMIN)
+  @Roles(Role.PROJECT_ADMIN)
   async findAll(@Query() query: PaginateQuery) {
     return await this.projectService.findAll(query);
   }
@@ -54,14 +54,14 @@ export class ProjectController {
   }
 
   @Get('get-by-status')
-  @Roles(Role.ADMIN)
+  @Roles(Role.PROJECT_ADMIN)
   async findByProjectStatus(@Query() statusQuery: ProjectStatusDto, @Query() query: PaginateQuery) {
     const { projectStatus } = statusQuery;
     return await this.projectService.findProjectByStatus(projectStatus, query);
   }
 
   @Get('get-by-priority')
-  @Roles(Role.ADMIN)
+  @Roles(Role.PROJECT_ADMIN)
   async findByProjectPriority(@Query() priorityQuery: ProjectPriorityDto, @Query() query: PaginateQuery) {
     const { projectPriority } = priorityQuery;
     return await this.projectService.findProjectByPriority(projectPriority, query);

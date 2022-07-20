@@ -5,8 +5,7 @@ import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { ProjectIdDto } from 'src/project/dto/common-project.dto';
-import { IssueIdDto, ReassignIssueDto } from './dto/common-issue.dto';
+import { IssueIdAndProjectIdDto, IssueTitleAndProjectIdDto, ReassignIssueDto } from './dto/common-issue.dto';
 import { PaginateQuery } from 'nestjs-paginate';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/user/interfaces/user.interface';
@@ -27,16 +26,19 @@ export class IssueController {
   }
 
   @Get('all')
-  @Roles(Role.ADMIN)
+  @Roles(Role.PROJECT_ADMIN)
   async findAll(@Query() query: PaginateQuery) {
     return await this.issueService.findAll(query);
   }
 
-  @Get(':issueId')
-  async findOne(@Param() params: IssueIdDto, @Query() query: ProjectIdDto, @UserDecorator() user: User) {
-    const { issueId } = params;
-    const { projectId } = query;
-    return await this.issueService.findOne(issueId, projectId, user);
+  @Get('get-by-title')
+  async findOneById(@Query() query: IssueTitleAndProjectIdDto, @UserDecorator() user: User) {
+    return await this.issueService.findOneByTitle(query, user);
+  }
+
+  @Get('get-by-id')
+  async findIssueById(@Query() query: IssueIdAndProjectIdDto, @UserDecorator() user: User) {
+    return await this.issueService.findOneById(query, user);
   }
 
   @Patch(':id')

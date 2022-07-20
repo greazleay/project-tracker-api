@@ -24,7 +24,7 @@ export class CaslAbilityFactory {
             Ability<[Action, Subjects]>
         >(Ability as AbilityClass<AppAbility>);
 
-        if (user.roles.includes(Role.SUPER_ADMIN)) can(Action.Manage, 'all')
+        if (user.roles.includes(Role.PROJECT_ADMIN)) can(Action.Manage, 'all')
 
         can(Action.Manage, ProjectAccess, { userId: user.id, projectId: project.id, accessType: AccessType.MANAGER })
         can(Action.Update, ProjectAccess, { userId: user.id, projectId: project.id, accessType: AccessType.COLLABORATOR });
