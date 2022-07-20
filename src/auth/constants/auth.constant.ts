@@ -1,11 +1,11 @@
-import { CookieOptions } from "express";
+import { CookieSerializeOptions } from '@fastify/cookie';
 
-export const cookieOptions: CookieOptions = {
+export const cookieOptions: CookieSerializeOptions = {
     domain: 'localhost',    // Value must be set to FE domain for cookie to be sent
-    path: '/v1/auth/refresh-token',
     httpOnly: true,
     maxAge: 604800000,
-    signed: true,
+    path: '/v1/auth/refresh-token',
     sameSite: 'strict',
     secure: true,
+    signed: true,
 };

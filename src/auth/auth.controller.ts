@@ -1,11 +1,10 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth, ApiConsumes, ApiProduces, ApiBody } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBearerAuth, ApiBody, ApiConsumes, ApiCookieAuth, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from 'src/user/entities/user.entity';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 import { LoginUserDto } from './dto/login-user.dto';
 import { SkipAuth } from './decorators/skip-auth.decorator';
@@ -27,7 +26,7 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     async login(@UserDecorator() user: User, @Res({ passthrough: true }) res: FastifyReply) {
         const { token, refreshToken } = await this.authService.login(user);
-        res.cookie('jit', refreshToken, cookieOptions)
+        res.setCookie('jit', refreshToken, cookieOptions)
         return {
             statusCode: 200,
             message: 'Login Successful',
@@ -52,8 +51,9 @@ export class AuthController {
     @HttpCode(200)
     async refreshToken(@Req() req: FastifyRequest, @Res({ passthrough: true }) res: FastifyReply) {
         const { jit } = req.cookies;
-        const { token, refreshToken } = await this.authService.validateRefreshToken(jit);
-        res.cookie('jit', refreshToken, cookieOptions);
+        const unsginedRefreshToken = jit ? req.unsignCookie(jit).value : '';        // Cookie needs to be unsigned else jwt would be malformed, issue specific to fastify
+        const { token, refreshToken } = await this.authService.validateRefreshToken(unsginedRefreshToken);
+        res.setCookie('jit', refreshToken, cookieOptions);
         return {
             statusCode: 200,
             message: 'Token Refresh Successful',

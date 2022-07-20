@@ -1,4 +1,9 @@
-import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  HttpException,
+  HttpStatus,
+  ValidationPipe
+} from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -11,6 +16,7 @@ import {
   SwaggerModule
 } from '@nestjs/swagger';
 import fastifyCookie from '@fastify/cookie';
+import compression from '@fastify/compress';
 import helmet from '@fastify/helmet'
 import { AppModule } from './app.module';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -46,8 +52,10 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   await app.register(fastifyCookie, {
-    secret: process.env.COOKIE_SECRET
-  })
+    secret: process.env.COOKIE_SECRET,
+  });
+
+  await app.register(compression, { encodings: ['gzip', 'deflate'] });
 
   await app.register(helmet, {
     contentSecurityPolicy: {
