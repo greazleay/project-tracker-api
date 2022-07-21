@@ -173,6 +173,27 @@ export class IssueController {
     return await this.issueService.findOneById(query, user);
   };
 
+  @Get('all-overdue')
+  @Roles(Role.PROJECT_ADMIN)
+  @ApiOperation({
+    description: 'Returns all Over Issues on the entire server. Only User(s) with Project Admin privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Issues on the server returned'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findAllOverdueIssues(@Query() query: PaginateQuery) {
+    return await this.issueService.findAllOverdueIssues(query);
+  }
+
   @Patch(':id')
   @ApiOperation({
     description: 'Updates Other Issue Properties, THIS ENDPOINT IS NOT YET COMPLETE'

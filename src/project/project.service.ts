@@ -17,7 +17,14 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { AccessType } from './interfaces/project.interface';
 import { Action } from '../casl/dto/casl.dto';
 import { CaslAbilityFactory } from '../casl/casl-ability.factory';
-import { AddProjectMembersDto, ModifyProjectMemberAccessDto, RemoveProjectMembersDto, UpdateProjectPriorityDto, UpdateProjectStatusDto } from './dto/common-project.dto';
+import {
+  AddProjectMembersDto,
+  ModifyProjectMemberAccessDto,
+  RemoveProjectMembersDto,
+  UpdateProjectPriorityDto,
+  UpdateProjectStatusDto
+} from './dto/common-project.dto';
+import { Issue } from '../issue/entities/issue.entity';
 
 @Injectable()
 export class ProjectService {
@@ -159,6 +166,39 @@ export class ProjectService {
     }
   }
 
+  async findAllOverDueIssuesOnAProject(id: string, user: User): Promise<Issue[]> {
+    try {
+
+      // Check if Project with the specified ID exists and load it's members
+      const project = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .leftJoinAndSelect('project.projectIssues', 'projectIssues')
+        .where('project.id = :id', { id })
+        .getOne();
+
+      if (!project) throw new NotFoundException(`Project with ID: ${id} not found on this server`);
+
+      // Check if the user has required read permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
+      const ability = this.caslAbilityFactory.createForUser(user, project)
+
+      if (ability.can(Action.Read, projectAccess))
+        return project
+          .projectIssues
+          .filter(issue => new Date(issue.dueDate) < new Date());
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async manageProjectIssues(id: string, user: User): Promise<Project> {
     try {
 
@@ -235,7 +275,7 @@ export class ProjectService {
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
+  };
 
   async addProjectMember(addProjectMembersDto: AddProjectMembersDto, user: User) {
     try {

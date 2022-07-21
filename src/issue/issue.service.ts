@@ -201,6 +201,48 @@ export class IssueService {
     }
   }
 
+  async findAllOverdueIssues(query: PaginateQuery): Promise<Paginated<Issue>> {
+    try {
+      const foundIssue = this.issueRepository
+        .createQueryBuilder('issue')
+        .where('issue.dueDate < :today', { today: new Date() })
+
+      return paginate<Issue>(query, foundIssue, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findAllOverdueIssuesOnAProject(projectId: string, query: PaginateQuery): Promise<Paginated<Issue>> {
+    try {
+      const foundIssue = this.issueRepository
+        .createQueryBuilder('issue')
+        .leftJoinAndSelect('issue.project', 'project')
+        .having('project.id = :projectId', { projectId })
+        .andHaving('issue.dueDate < :today', { today: new Date() })
+
+      return paginate<Issue>(query, foundIssue, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   update(id: number, updateIssueDto: UpdateIssueDto) {
     return `This action updates a #${id} issue`;
   }

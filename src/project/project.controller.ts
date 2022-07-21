@@ -197,6 +197,33 @@ export class ProjectController {
     return await this.projectService.findOneById(projectId, user);
   }
 
+  @Get(':projectId/overdue-issues')
+  @ApiOperation({
+    description: 'Returns All Overdue issues on a project, only members of the project with the specifed ID can make a successful request to this endpoint'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Project with the specified ID on the server returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findAllOverdueIssues(@Param() params: ProjectIdDto, @UserDecorator() user: User) {
+    const { projectId } = params;
+    return await this.projectService.findAllOverDueIssuesOnAProject(projectId, user);
+  }
+
   @Post('create')
   @ApiOperation({
     description: 'Creates a new Project and adds the user making the request as the Project Manager'
