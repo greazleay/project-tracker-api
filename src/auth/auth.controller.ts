@@ -21,10 +21,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { SkipAuth } from './decorators/skip-auth.decorator';
 
 
-@Controller({
-    path: 'auth',
-    version: '1'
-})
+@Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
 

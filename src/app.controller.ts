@@ -2,9 +2,7 @@ import { Controller, Delete, Get, HttpCode } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
-@Controller({
-  version: '1'
-})
+@Controller()
 @ApiExcludeController()
 export class AppController {
   constructor(private readonly appService: AppService) { }

@@ -44,10 +44,7 @@ import {
 import { Project } from './entities/project.entity';
 
 
-@Controller({
-  path: 'projects',
-  version: '1',
-})
+@Controller('projects',)
 @ApiTags('Projects')
 @ApiBearerAuth()
 export class ProjectController {

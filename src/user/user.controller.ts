@@ -14,7 +14,6 @@ import {
     ApiBearerAuth,
     ApiConsumes,
     ApiProduces,
-    ApiParam,
     ApiForbiddenResponse,
     ApiOkResponse,
     ApiInternalServerErrorResponse,
@@ -34,10 +33,7 @@ import { SkipAuth } from '../auth/decorators/skip-auth.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PaginateQuery } from 'nestjs-paginate';
 
-@Controller({
-    path: 'users',
-    version: '1'
-})
+@Controller('users')
 @ApiTags('User')
 export class UserController {
 
