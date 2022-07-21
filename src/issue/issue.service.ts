@@ -20,7 +20,7 @@ export class IssueService {
 
   async create(createIssueDto: CreateIssueDto, user: User) {
     try {
-      const { issueTitle, projectId, userAssignedTo, ...rest } = createIssueDto;
+      const { issueTitle, projectId, userAssignedTo, dueDate, ...rest } = createIssueDto;
 
       // Check if the project exists and user has required update right on the project
       const project = await this.projectService.manageProjectIssues(projectId, user)
@@ -33,6 +33,10 @@ export class IssueService {
       if (!project.members.some(member => member.userId === userAssignedTo))
         throw new ConflictException(`Cannot assign issue to User with ID: ${userAssignedTo}, user not a member of this project`);
 
+      // Check if the Issue dueDate does not exceed project completion date
+      if (new Date(dueDate) > new Date(project.completionDate))
+        throw new ConflictException(`Issue dueDate cannot be greater than Project completionDate`)
+
       // Prepare New Issue Object and Save
       const issueToOpen = new Issue();
       issueToOpen.issueTitle = issueTitle;
@@ -40,7 +44,7 @@ export class IssueService {
       issueToOpen.issueType = rest.issueType;
       issueToOpen.issuePriority = rest.issuePriority;
       issueToOpen.issueStatus = rest.issueStatus;
-      issueToOpen.dueDate = rest.dueDate;
+      issueToOpen.dueDate = dueDate;
       issueToOpen.project = project;
       issueToOpen.openedBy = user;
       issueToOpen.assignedTo = await this.userRepository.findOneBy({ id: userAssignedTo })

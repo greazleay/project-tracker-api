@@ -39,11 +39,11 @@ export class ProjectService {
   async create(createProjectDto: CreateProjectDto, user: User): Promise<Project> {
     try {
 
+      const { projectName, description, projectPriority, projectStatus, completionDate } = createProjectDto;
+
       // Check if project name already exist
-      const { projectName, description, projectPriority, projectStatus } = createProjectDto;
       const isProjectExist = await this.projectRepository.findOneBy({ projectName });
       if (isProjectExist) throw new ConflictException(`Project with name ${projectName} already exist, please choose another name`);
-
 
       // Create and Save new Project
       const projectToCreate = new Project()
@@ -52,6 +52,7 @@ export class ProjectService {
       projectToCreate.description = description;
       projectToCreate.projectPriority = projectPriority;
       projectToCreate.projectStatus = projectStatus;
+      projectToCreate.completionDate = completionDate;
 
       await this.projectRepository.save(projectToCreate)
 
@@ -61,9 +62,9 @@ export class ProjectService {
       projectAccessType.userId = user.id;
       projectAccessType.projectId = projectToCreate.id
 
-      await this.projectAccessRepository.save(projectAccessType)
+      await this.projectAccessRepository.save(projectAccessType);
 
-      return projectToCreate
+      return projectToCreate;
 
     } catch (error) {
       console.error(error);

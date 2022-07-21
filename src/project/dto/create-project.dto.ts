@@ -1,4 +1,5 @@
-import { IsEnum, IsString, MinLength } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsDate, IsEnum, IsString, MinDate, MinLength } from "class-validator";
 import { ProjectPriority, ProjectStatus } from "../interfaces/project.interface";
 
 
@@ -16,5 +17,10 @@ export class CreateProjectDto {
 
     @IsEnum(ProjectPriority)
     projectPriority: ProjectPriority
+
+    @Transform(({ value }) => new Date(value))
+    @IsDate()
+    @MinDate(new Date())
+    completionDate: Date;
 
 }

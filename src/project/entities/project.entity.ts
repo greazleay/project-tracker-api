@@ -19,6 +19,9 @@ export class Project extends AbstractEntity {
     @Column('enum', { enum: ProjectPriority, default: ProjectPriority.MEDIUM })
     projectPriority: ProjectPriority
 
+    @Column('timestamp without time zone', { nullable: true })
+    completionDate: Date
+
     @OneToMany(() => ProjectAccess, projectAccess => projectAccess.project)
     members: ProjectAccess[];
 

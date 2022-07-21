@@ -59,17 +59,17 @@ export class IssueController {
     description: 'Target Project specified in the request body not found'
   })
   @ApiConflictResponse({
-    description: 'Issue with the specified issueTitle already exists on the target project'
-  })
-  @ApiConflictResponse({
-    description: 'User to assign the issue to is not a member of the project'
+    description: `Issue with the specified issueTitle already exists on the target project/
+    User to assign the issue to is not a member of the project/
+    Issue dueDate exceeds the Project completion date
+    `
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
   async create(@Body() createIssueDto: CreateIssueDto, @UserDecorator() user: User) {
     return await this.issueService.create(createIssueDto, user);
-  }
+  };
 
   @Patch('reassign-issue')
   @ApiOperation({
