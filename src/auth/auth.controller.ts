@@ -1,5 +1,16 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiBasicAuth, ApiBearerAuth, ApiBody, ApiConsumes, ApiCookieAuth, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+    ApiBasicAuth,
+    ApiBearerAuth,
+    ApiBody,
+    ApiConsumes,
+    ApiCookieAuth,
+    ApiInternalServerErrorResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+    ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -10,7 +21,10 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { SkipAuth } from './decorators/skip-auth.decorator';
 
 
-@Controller('/v1/auth')
+@Controller({
+    path: 'auth',
+    version: '1'
+})
 @ApiTags('Auth')
 export class AuthController {
 

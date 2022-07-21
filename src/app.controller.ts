@@ -2,7 +2,9 @@ import { Controller, Delete, Get, HttpCode } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller({
+  version: '1'
+})
 @ApiExcludeController()
 export class AppController {
   constructor(private readonly appService: AppService) { }
@@ -12,7 +14,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Delete('v1/clear-cache')
+  @Delete('clear-cache')
   @HttpCode(204)
   clearCache() {
     return this.appService.clearCache();

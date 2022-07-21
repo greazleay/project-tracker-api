@@ -13,6 +13,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -40,9 +41,13 @@ import {
   UpdateProjectPriorityDto,
   UpdateProjectStatusDto
 } from './dto/common-project.dto';
+import { Project } from './entities/project.entity';
 
 
-@Controller('/v1/projects')
+@Controller({
+  path: 'projects',
+  version: '1',
+})
 @ApiTags('Projects')
 @ApiBearerAuth()
 export class ProjectController {
@@ -54,7 +59,8 @@ export class ProjectController {
     description: 'Returns All Projects on the Server, only Users with Project Admin Privileges can make a successful request to this endpoint. Request can be paginated'
   })
   @ApiOkResponse({
-    description: 'SUCCESS: All Projects on the server returned'
+    description: 'SUCCESS: All Projects on the server returned',
+    type: Array<Project>
   })
   @ApiUnauthorizedResponse({
     description: 'Access Token supplied with the request has expired or is invalid'
@@ -74,7 +80,8 @@ export class ProjectController {
     description: 'Returns All Projects having the specified user as a member'
   })
   @ApiOkResponse({
-    description: 'SUCCESS: All Projects for the specified user on the server returned'
+    description: 'SUCCESS: All Projects for the specified user on the server returned',
+    type: Array<Project>
   })
   @ApiUnauthorizedResponse({
     description: 'Access Token supplied with the request has expired or is invalid'
@@ -197,7 +204,7 @@ export class ProjectController {
   @ApiOperation({
     description: 'Creates a new Project and adds the user making the request as the Project Manager'
   })
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'SUCCESS: Project created with the details in the request body'
   })
   @ApiBadRequestResponse({

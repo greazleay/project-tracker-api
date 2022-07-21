@@ -30,7 +30,10 @@ import { PaginateQuery } from 'nestjs-paginate';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/user/interfaces/user.interface';
 
-@Controller('v1/issues')
+@Controller({
+  path: 'issues',
+  version: '1'
+})
 @ApiTags('Issues')
 @ApiBearerAuth()
 export class IssueController {

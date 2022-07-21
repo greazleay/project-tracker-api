@@ -2,7 +2,8 @@ import {
   ClassSerializerInterceptor,
   HttpException,
   HttpStatus,
-  ValidationPipe
+  ValidationPipe,
+  VersioningType
 } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import {
@@ -101,6 +102,10 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api-docs', app, document, customOptions);
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

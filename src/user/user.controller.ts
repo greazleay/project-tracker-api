@@ -34,7 +34,10 @@ import { SkipAuth } from '../auth/decorators/skip-auth.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PaginateQuery } from 'nestjs-paginate';
 
-@Controller('v1/users')
+@Controller({
+    path: 'users',
+    version: '1'
+})
 @ApiTags('User')
 export class UserController {
 
