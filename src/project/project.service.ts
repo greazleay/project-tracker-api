@@ -135,37 +135,6 @@ export class ProjectService {
     }
   }
 
-
-  async findOneById(id: string, user: User): Promise<Project> {
-    try {
-
-      // Check if Project with the specified ID exists and load it's members
-      const project = await this.projectRepository
-        .createQueryBuilder('project')
-        .leftJoinAndSelect('project.members', 'member')
-        .leftJoinAndSelect('project.projectIssues', 'projectIssues')
-        .where('project.id = :id', { id })
-        .getOne();
-
-      if (!project) throw new NotFoundException(`Project with ID: ${id} not found on this server`);
-
-      // Check if the user has required read permission on the project
-      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
-      const ability = this.caslAbilityFactory.createForUser(user, project)
-
-      if (ability.can(Action.Read, projectAccess)) return project;
-
-      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
-
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async findAllOverDueIssuesOnAProject(id: string, user: User): Promise<Issue[]> {
     try {
 
@@ -199,7 +168,7 @@ export class ProjectService {
     }
   }
 
-  async manageProjectIssues(id: string, user: User): Promise<Project> {
+  async findOneById(id: string, user: User): Promise<Project> {
     try {
 
       // Check if Project with the specified ID exists and load it's members
@@ -216,7 +185,7 @@ export class ProjectService {
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
       const ability = this.caslAbilityFactory.createForUser(user, project)
 
-      if (ability.can(Action.Update, projectAccess)) return project;
+      if (ability.can(Action.Read, projectAccess)) return project;
 
       throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
 
@@ -277,6 +246,36 @@ export class ProjectService {
     }
   };
 
+  async manageProjectIssues(id: string, user: User): Promise<Project> {
+    try {
+
+      // Check if Project with the specified ID exists and load it's members
+      const project = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.members', 'member')
+        .leftJoinAndSelect('project.projectIssues', 'projectIssues')
+        .where('project.id = :id', { id })
+        .getOne();
+
+      if (!project) throw new NotFoundException(`Project with ID: ${id} not found on this server`);
+
+      // Check if the user has required read permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
+      const ability = this.caslAbilityFactory.createForUser(user, project)
+
+      if (ability.can(Action.Update, projectAccess)) return project;
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async addProjectMember(addProjectMembersDto: AddProjectMembersDto, user: User) {
     try {
       const { projectId, membersToAdd } = addProjectMembersDto;
@@ -288,7 +287,7 @@ export class ProjectService {
         .where('project.id = :projectId', { projectId })
         .getOne();
 
-      if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
+      if (!project) throw new NotFoundException(`Project with ID: ${projectId} not found on this server`);
 
       // Load Project Access and Check if the user has required read/write permissions on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id })
@@ -340,15 +339,15 @@ export class ProjectService {
         .where('project.id = :projectId', { projectId })
         .getOne();
 
-      if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
+      if (!project) throw new NotFoundException(`Project with ID: ${projectId} not found on this server`);
 
       // Load Project Access and Check if the user has required read/write permissions on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
-      const notMembersOfProject: string[] = [];
-
       if (ability.can(Action.Manage, projectAccess)) {
+
+        const notMembersOfProject: string[] = [];
 
         // Loop through membersToRemove Array and check for matching conditions
         for (const member of membersToRemove) {
@@ -368,22 +367,23 @@ export class ProjectService {
           await this.projectAccessRepository.remove(removeMemberFromProject);
         }
 
-      };
+        return !notMembersOfProject.length
 
-      switch (true) {
-        case !notMembersOfProject.length:
-          return {
+          ? {
             status: 'SUCCESS',
             message: `Access for Specified Members have been modified on ${project.projectName} project`
-          };
-        case notMembersOfProject.length > 0:
-          return {
+          }
+
+          : {
             status: 'SUCCESS',
             message: `Request Complete, but the following members with ID(s): ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
           };
-        default:
-          throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
-      };
+
+      } else {
+
+        throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
+      }
 
     } catch (error) {
       console.error(error);
@@ -405,15 +405,15 @@ export class ProjectService {
         .where('project.id = :projectId', { projectId })
         .getOne();
 
-      if (!project) throw new NotFoundException(`Project with name: ${projectId} not found on this server`);
+      if (!project) throw new NotFoundException(`Project with ID: ${projectId} not found on this server`);
 
       // Load Project Access and Check if the user has required read/write permission on the project
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
-      const notMembersOfProject: string[] = [];
-
       if (ability.can(Action.Manage, projectAccess)) {
+
+        const notMembersOfProject: string[] = [];
 
         // Loop through membersToRemove Array and check for matching conditions
         for (const member of membersToModify) {
@@ -434,21 +434,22 @@ export class ProjectService {
           await this.projectAccessRepository.save(modifyMemberAccess);
         }
 
-      };
+        return !notMembersOfProject.length
 
-      switch (true) {
-        case !notMembersOfProject.length:
-          return {
+          ? {
             status: 'SUCCESS',
             message: `Access for Specified Members have been modified on ${project.projectName} project`
-          };
-        case notMembersOfProject.length > 0:
-          return {
+          }
+
+          : {
             status: 'PARTIAL SUCCESS',
             message: `Request Complete, but the following members with ID ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
           };
-        default:
-          throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
+      } else {
+
+        throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
       }
 
     } catch (error) {
