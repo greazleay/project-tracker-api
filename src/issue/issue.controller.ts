@@ -1,5 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -79,27 +99,90 @@ export class IssueController {
 
   @Get('all')
   @Roles(Role.PROJECT_ADMIN)
+  @ApiOperation({
+    description: 'Returns all Issues on the Server. Only User(s) with Project Admin privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Issues on the server returned'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findAll(@Query() query: PaginateQuery) {
     return await this.issueService.findAll(query);
   }
 
   @Get('get-by-title')
+  @ApiOperation({
+    description: 'Returns the Issue with the specified title on a target Project, User must have at least viewer rights on the project to be able to make a successful request'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue with the specified title found and returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Query parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Issue with the specified issueTitle does not exist on the target Project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findOneById(@Query() query: IssueTitleAndProjectIdDto, @UserDecorator() user: User) {
     return await this.issueService.findOneByTitle(query, user);
   }
 
   @Get('get-by-id')
+  @ApiOperation({
+    description: 'Returns the Issue with the specified ID on a target Project, User must have at least viewer rights on the project to be able to make a successful request'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue with the specified ID found and returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Query parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Issue with the specified ID does not exist on the target Project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findIssueById(@Query() query: IssueIdAndProjectIdDto, @UserDecorator() user: User) {
     return await this.issueService.findOneById(query, user);
-  }
+  };
 
   @Patch(':id')
+  @ApiOperation({
+    description: 'Updates Other Issue Properties, THIS ENDPOINT IS NOT YET COMPLETE'
+  })
   update(@Param('id') id: string, @Body() updateIssueDto: UpdateIssueDto) {
     return this.issueService.update(+id, updateIssueDto);
-  }
+  };
 
   @Delete(':id')
+  @ApiOperation({
+    description: 'Deletes an Issue, THIS ENDPOINT IS NOT YET COMPLETE'
+  })
   remove(@Param('id') id: string) {
     return this.issueService.remove(+id);
-  }
+  };
 }

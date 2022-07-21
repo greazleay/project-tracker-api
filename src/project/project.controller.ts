@@ -9,7 +9,18 @@ import {
   Put,
   Query
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { PaginateQuery } from 'nestjs-paginate';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -94,6 +105,9 @@ export class ProjectController {
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
   })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified name does not exist on the server'
+  })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
@@ -168,6 +182,9 @@ export class ProjectController {
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
   })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
@@ -192,6 +209,9 @@ export class ProjectController {
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
   })
+  @ApiConflictResponse({
+    description: 'Project with the specified projectName already exists on the server'
+  })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
@@ -214,6 +234,12 @@ export class ProjectController {
   })
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
+  @ApiNotFoundResponse({
+    description: 'Member to be added with the specified ID does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
@@ -238,6 +264,12 @@ export class ProjectController {
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
   })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
+  @ApiNotFoundResponse({
+    description: 'Member to be removed with the specified ID does not exist on the server'
+  })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
@@ -260,6 +292,12 @@ export class ProjectController {
   })
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
+  @ApiNotFoundResponse({
+    description: 'Member ID with access to be modified does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
@@ -284,6 +322,9 @@ export class ProjectController {
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
   })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
@@ -306,6 +347,9 @@ export class ProjectController {
   })
   @ApiForbiddenResponse({
     description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'

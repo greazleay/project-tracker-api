@@ -1638,7 +1638,7 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@nestjs/cli@^9.0.3":
+"@nestjs/cli@^9.0.0":
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/@nestjs/cli/-/cli-9.0.0.tgz#f9ab4c33cfbc9ee54d792fe29e0f582e0bf04b06"
   integrity sha512-xT5uOoIEcaB/Fn6UeF7atfKqKiEEsTeRKPiM55p+e5H9WVw8FC2r4ceZgaINJbsw0QWskVj/ZQadMo6dA6hXxw==
@@ -1740,7 +1740,7 @@
     path-to-regexp "3.2.0"
     tslib "2.4.0"
 
-"@nestjs/schematics@^9.0.0", "@nestjs/schematics@^9.0.3":
+"@nestjs/schematics@^9.0.0", "@nestjs/schematics@^9.0.1":
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/@nestjs/schematics/-/schematics-9.0.1.tgz#2ec1b3fc4cd2c44310d4d7d1f5f276a18d24964b"
   integrity sha512-QU7GbnQvADFXdumcdADmv4vil3bhnYl2IFHWKieRt0MgIhghgBxIB7kDKWhswcuZ0kZztVbyYjo9aCrlf62fcw==

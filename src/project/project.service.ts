@@ -306,13 +306,18 @@ export class ProjectService {
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
+      const notMembersOfProject: string[] = [];
+
       if (ability.can(Action.Manage, projectAccess)) {
 
         // Loop through membersToRemove Array and check for matching conditions
         for (const member of membersToRemove) {
 
-          // Check if member doesn't belong to the project and skip
-          if (!project.members.some(item => item.userId === member)) continue;
+          // Check if member doesn't belong to the project and skip.
+          if (!project.members.some(item => item.userId === member)) {
+            notMembersOfProject.push(member);
+            continue;
+          };
 
           // Check Whether member exists on the Server  
           const user = await this.userRepository.findOneBy({ id: member });
@@ -323,10 +328,22 @@ export class ProjectService {
           await this.projectAccessRepository.remove(removeMemberFromProject);
         }
 
-        return { status: 'SUCCESS', message: `Specified members Removed from ${project.projectName} project` };
-      }
+      };
 
-      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+      switch (true) {
+        case !notMembersOfProject.length:
+          return {
+            status: 'SUCCESS',
+            message: `Access for Specified Members have been modified on ${project.projectName} project`
+          };
+        case notMembersOfProject.length > 0:
+          return {
+            status: 'SUCCESS',
+            message: `Request Complete, but the following members with ID(s): ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
+          };
+        default:
+          throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+      };
 
     } catch (error) {
       console.error(error);
@@ -354,14 +371,22 @@ export class ProjectService {
       const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: project.id });
       const ability = this.caslAbilityFactory.createForUser(user, project);
 
+      const notMembersOfProject: string[] = [];
+
       if (ability.can(Action.Manage, projectAccess)) {
 
         // Loop through membersToRemove Array and check for matching conditions
         for (const member of membersToModify) {
 
+          // Check if member doesn't belong to the project and skip.
+          if (!project.members.some(item => item.userId === member.memberId)) {
+            notMembersOfProject.push(member.memberId);
+            continue;
+          };
+
           // Check Whether member exists on the Server  
           const user = await this.userRepository.findOneBy({ id: member.memberId })
-          if (!user) throw new NotFoundException(`User with id: ${member.memberId} does not exist on this server`)
+          if (!user) throw new NotFoundException(`User with id: ${member.memberId} does not exist on this server`);
 
           // Modify member access on Project
           const modifyMemberAccess = await this.projectAccessRepository.findOne({ where: { projectId: project.id, userId: member.memberId } });
@@ -369,10 +394,22 @@ export class ProjectService {
           await this.projectAccessRepository.save(modifyMemberAccess);
         }
 
-        return { status: 'SUCCESS', message: `Access for Specified Members have been modified on ${project.projectName} project` };
-      }
+      };
 
-      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action')
+      switch (true) {
+        case !notMembersOfProject.length:
+          return {
+            status: 'SUCCESS',
+            message: `Access for Specified Members have been modified on ${project.projectName} project`
+          };
+        case notMembersOfProject.length > 0:
+          return {
+            status: 'PARTIAL SUCCESS',
+            message: `Request Complete, but the following members with ID ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
+          };
+        default:
+          throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+      }
 
     } catch (error) {
       console.error(error);
