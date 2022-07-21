@@ -82,7 +82,7 @@ export class ProjectService {
     }
   }
 
-  async findProjectByStatus(projectStatus: string, query: PaginateQuery) {
+  async findProjectByStatus(projectStatus: string, query: PaginateQuery): Promise<Paginated<Project>> {
     try {
 
       // Check if there are projects with matching status and load it's members
@@ -105,7 +105,7 @@ export class ProjectService {
     }
   }
 
-  async findProjectByPriority(projectPriority: string, query: PaginateQuery) {
+  async findProjectByPriority(projectPriority: string, query: PaginateQuery): Promise<Paginated<Project>> {
     try {
 
       // Check if there are projects with matching priority and load it's members
@@ -219,7 +219,7 @@ export class ProjectService {
     }
   }
 
-  async findAllProjectsByUser(userId: string) {
+  async findAllProjectsByUser(userId: string): Promise<ProjectAccess[]> {
     try {
       const user = await this.userRepository
         .createQueryBuilder('user')

@@ -64,9 +64,9 @@ export class IssueService {
       // Check if the project exists and user has required update right on the project
       const project = await this.projectService.manageProjectIssues(projectId, user);
 
-      // Check if specified isseId exists on the project
+      // Check if specified issueId exists on the project
       if (!project.projectIssues.some(issue => issue.id === issueId))
-        throw new ConflictException(`Issue with ID: '${issueId}' does not exist on ${project.projectName} project`);
+        throw new NotFoundException(`Issue with ID: '${issueId}' does not exist on ${project.projectName} project`);
 
       const issueToUpdate = await this.issueRepository
         .createQueryBuilder('issue')

@@ -1,5 +1,5 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiBasicAuth, ApiBearerAuth, ApiBody, ApiConsumes, ApiCookieAuth, ApiProduces, ApiTags } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBearerAuth, ApiBody, ApiConsumes, ApiCookieAuth, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -10,8 +10,8 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { SkipAuth } from './decorators/skip-auth.decorator';
 
 
-@ApiTags('Auth')
 @Controller('/v1/auth')
+@ApiTags('Auth')
 export class AuthController {
 
     constructor(private readonly authService: AuthService) { }
@@ -19,8 +19,19 @@ export class AuthController {
     @Post('login')
     @ApiBasicAuth()
     @ApiBody({ type: LoginUserDto })
-    @ApiConsumes('application/x-www-form-urlencoded')
-    @ApiProduces('application/json')
+    @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+    @ApiOperation({
+        description: 'Logs in a User with valid email/password combinations'
+    })
+    @ApiOkResponse({
+        description: 'Successful Login'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Login Attempt failed due to invalid email/password combination'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     @HttpCode(200)
     @SkipAuth()
     @UseGuards(LocalAuthGuard)
@@ -32,23 +43,45 @@ export class AuthController {
             message: 'Login Successful',
             authToken: token,
         };
-    }
+    };
 
     @Post('logout')
-    @ApiBearerAuth()
-    @ApiProduces('application/json')
     @HttpCode(200)
+    @ApiBearerAuth()
+    @ApiOperation({
+        description: 'Logs out a user and clears refresh token cookies'
+    })
+    @ApiOkResponse({
+        description: 'Logout successful'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Access Token supplied with the request has expired'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     async logout(@UserDecorator() user: User, @Res({ passthrough: true }) res: FastifyReply) {
         await this.authService.logout(user);
         res.clearCookie('jit', cookieOptions);
         return { message: 'Logout Successful' };
-    }
+    };
 
     @Post('refresh-token')
-    @ApiCookieAuth()
-    @ApiProduces('application/json')
     @SkipAuth()
     @HttpCode(200)
+    @ApiCookieAuth()
+    @ApiOperation({
+        description: 'Gets a new Token with a valid refresh token'
+    })
+    @ApiOkResponse({
+        description: 'Token Refresh successful'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Refresh Token supplied with the request has expired'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     async refreshToken(@Req() req: FastifyRequest, @Res({ passthrough: true }) res: FastifyReply) {
         const { jit } = req.cookies;
         const unsginedRefreshToken = jit ? req.unsignCookie(jit).value : '';        // Cookie needs to be unsigned else jwt would be malformed, issue specific to fastify
@@ -59,5 +92,5 @@ export class AuthController {
             message: 'Token Refresh Successful',
             authToken: token,
         };
-    }
+    };
 }

@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
+import { ITokens } from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -26,11 +27,15 @@ export class AuthService {
             };
             throw new UnauthorizedException('Invalid Credentials');
         } catch (error) {
-            throw new HttpException(error.message, error.status);
+            console.error(error);
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+            )
         }
     };
 
-    async validateJwt(sub: string): Promise<any> {
+    async validateJwt(sub: string): Promise<Partial<User>> {
         try {
             const user = await this.userRepository.findOneBy({ id: sub });
             if (user) {
@@ -39,11 +44,15 @@ export class AuthService {
             }
             throw new UnauthorizedException('Invalid Credentials');
         } catch (error) {
-            throw new HttpException(error.message, error.status);
+            console.error(error);
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+            )
         }
     }
 
-    async login(user: User) {
+    async login(user: User): Promise<ITokens> {
         try {
             const personalKey = await user.generatePersonalKey();
             const payload = {
@@ -72,22 +81,28 @@ export class AuthService {
             return { token, refreshToken };
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+            )
         }
     }
 
-    async logout(user: User) {
+    async logout(user: User): Promise<void> {
         try {
             const logOutUser = await this.userRepository.findOneBy({ id: user.id });
             const personalKey = await logOutUser.generatePersonalKey();
             await this.userRepository.save(user);
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+            )
         }
     }
 
-    async validateRefreshToken(token: string): Promise<any> {
+    async validateRefreshToken(token: string): Promise<ITokens> {
         try {
             if (!token) throw new BadRequestException('Refresh Token cannot be empty');
             const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
@@ -98,7 +113,10 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Refresh Token, Please initiate a new login request');
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR
+            )
         }
     }
 }

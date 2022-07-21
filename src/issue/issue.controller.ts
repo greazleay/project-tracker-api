@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -10,17 +10,69 @@ import { PaginateQuery } from 'nestjs-paginate';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/user/interfaces/user.interface';
 
-@ApiTags('Issues')
 @Controller('v1/issues')
+@ApiTags('Issues')
+@ApiBearerAuth()
 export class IssueController {
   constructor(private readonly issueService: IssueService) { }
 
   @Post('open-new-issue')
+  @ApiOperation({
+    description: 'Opens a new issue on the target project specified in the request body with issue details'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue Opened with the specified details in the request body'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Target Project specified in the request body not found'
+  })
+  @ApiConflictResponse({
+    description: 'Issue with the specified issueTitle already exists on the target project'
+  })
+  @ApiConflictResponse({
+    description: 'User to assign the issue to is not a member of the project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async create(@Body() createIssueDto: CreateIssueDto, @UserDecorator() user: User) {
     return await this.issueService.create(createIssueDto, user);
   }
 
   @Patch('reassign-issue')
+  @ApiOperation({
+    description: 'Reassignes an existing issue to a new User'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue reassigned to the designated User'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Specified Issue does not exist on the target Project'
+  })
+  @ApiConflictResponse({
+    description: 'Desginated User already assigned to the Issue'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async reassignProjectIssue(@Body() reassignIssueDto: ReassignIssueDto, @UserDecorator() user: User) {
     return await this.issueService.reassignIssue(reassignIssueDto, user)
   }
