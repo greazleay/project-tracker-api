@@ -134,6 +134,26 @@ export class ProjectService {
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  };
+
+  async findAllOverdueProjects(query: PaginateQuery): Promise<Paginated<Project>> {
+    try {
+
+      const foundProjects = this.projectRepository
+        .createQueryBuilder('project')
+        .where('project.completionDate < :today', { today: new Date() })
+
+      return paginate<Project>(query, foundProjects, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async findAllOverDueIssuesOnAProject(id: string, user: User): Promise<Issue[]> {

@@ -72,6 +72,28 @@ export class ProjectController {
     return await this.projectService.findAll(query);
   };
 
+  @Get('all-overdue')
+  @Roles(Role.PROJECT_ADMIN)
+  @ApiOperation({
+    description: 'Returns All Overdue Projects on the Server, only Users with Project Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Projects on the server returned',
+    type: Array<Project>
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findAllOverdue(@Query() query: PaginateQuery) {
+    return await this.projectService.findAllOverdueProjects(query);
+  };
+
   @Get('all-by-user')
   @ApiOperation({
     description: 'Returns All Projects having the specified user as a member'
