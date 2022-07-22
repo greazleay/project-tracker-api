@@ -25,7 +25,7 @@ import {
 import { PaginateQuery } from 'nestjs-paginate';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { UpdateOtherProjectDetailsDto, UpdateProjectDto } from './dto/update-project.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -356,7 +356,7 @@ export class ProjectController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async modifyProjectMemberAccess(@Body() modifyProjectAccessDto: ModifyProjectMemberAccessDto, @UserDecorator() user: User) {
-    return await this.projectService.modifyMembersProjectAccess(modifyProjectAccessDto, user)
+    return await this.projectService.modifyProjectMemberAccess(modifyProjectAccessDto, user)
   }
 
   @Patch('update-project-status')
@@ -411,12 +411,36 @@ export class ProjectController {
     return await this.projectService.updateProjectPriority(updateProjectPriorityDto, user)
   }
 
-  @Patch(':id')
+  @Patch(':projectId/update-other-details')
   @ApiOperation({
-    description: 'Updates Other Project Properties, THIS ENDPOINT IS NOT YET COMPLETE'
+    description: 'Updates Other Project Properties such as project name, description and completion date'
   })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectService.update(+id, updateProjectDto);
+  @ApiOkResponse({
+    description: 'SUCCESS: Project updated successfully with the details in specified in the request body'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Project with the specified ID does not exist on the server'
+  })
+  @ApiConflictResponse({
+    description: `New Project name currently unavailable, name being used in another project/
+    There are existing issues on the project with dueDate superceding the currently provided completion date
+    `
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async update(@Param() params: ProjectIdDto, @Body() updateProjectDto: UpdateOtherProjectDetailsDto, @UserDecorator() user: User) {
+    const { projectId } = params;
+    return await this.projectService.update(projectId, updateProjectDto, user);
   }
 
   @Delete(':id')

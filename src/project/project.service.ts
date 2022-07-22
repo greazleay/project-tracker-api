@@ -11,9 +11,9 @@ import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Project } from './entities/project.entity';
 import { ProjectAccess } from './entities/project-access.entity';
 import { User } from '../user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { UpdateOtherProjectDetailsDto, UpdateProjectDto } from './dto/update-project.dto';
 import { AccessType } from './interfaces/project.interface';
 import { Action } from '../casl/dto/casl.dto';
 import { CaslAbilityFactory } from '../casl/casl-ability.factory';
@@ -400,11 +400,9 @@ export class ProjectService {
             message: `Request Complete, but the following members with ID(s): ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
           };
 
-      } else {
+      };
 
-        throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
-
-      }
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
 
     } catch (error) {
       console.error(error);
@@ -415,7 +413,7 @@ export class ProjectService {
     }
   }
 
-  async modifyMembersProjectAccess(modifyMemberAccessDto: ModifyProjectMemberAccessDto, user: User) {
+  async modifyProjectMemberAccess(modifyMemberAccessDto: ModifyProjectMemberAccessDto, user: User) {
     try {
       const { projectId, membersToModify } = modifyMemberAccessDto;
 
@@ -467,11 +465,9 @@ export class ProjectService {
             message: `Request Complete, but the following members with ID ${notMembersOfProject.join(', ')} are not members of the ${project.projectName} project and were skipped`
           };
 
-      } else {
+      };
 
-        throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
-
-      }
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
 
     } catch (error) {
       console.error(error);
@@ -545,8 +541,58 @@ export class ProjectService {
   }
 
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project, NOT YET IMPLEMENTED`;
+  async update(id: string, updateProjectDto: UpdateOtherProjectDetailsDto, user: User): Promise<Project> {
+    try {
+
+      const { projectName, description, completionDate } = updateProjectDto;
+
+      // Check if there is an existing project asides the current project with the provided project name
+      const isProjectNameExist = await this.projectRepository.findOne({
+        where: {
+          id: Not(id),
+          projectName
+        }
+      });
+
+      if (isProjectNameExist)
+        throw new ConflictException(`New Project name: ${projectName} currently unavailable, name being used in another project`)
+
+      // Check if a project with the specified ID exists
+      const projectToUpdate = await this.projectRepository.findOne({
+        relations: {
+          projectIssues: true
+        },
+        where: { id }
+      });
+      if (!projectToUpdate) throw new NotFoundException(`Project with Id: ${id} not found on this server`);
+
+      // Check if no Issue dueDate supercedes the given completion date
+      if (projectToUpdate.projectIssues.some(issue => new Date(issue.dueDate) > completionDate))
+        throw new ConflictException(`There are existing issues on the project with dueDate superceding the currently provided completion date`);
+
+      // Load Project Access and Check if the user has required read/write permission on the project
+      const projectAccess = await this.projectAccessRepository.findOneBy({ userId: user.id, projectId: id })
+      const ability = this.caslAbilityFactory.createForUser(user, projectToUpdate)
+
+      if (ability.can(Action.Manage, projectAccess)) {
+        
+        projectToUpdate.projectName = projectName;
+        projectToUpdate.description = description;
+        projectToUpdate.completionDate = completionDate;
+
+        return await this.projectRepository.save(projectToUpdate)
+
+      }
+
+      throw new ForbiddenException('Insufficient Permission to Perform the Requested Action');
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   remove(id: number) {
