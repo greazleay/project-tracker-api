@@ -1,73 +1,166 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Project Tracker - API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## About
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This is a Role-based Project Management API backed with Authorizations provided by the CASL library, project access is divided into the following categories:
 
-## Description
+* PROJECT VIEWERS
+* PROJECT COLLABORATORS
+* PROJECT MANAGERS
+* PROJECT ADMINISTRATORS
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+#### Project Viewers are members of a project and they have the following properties:
+
+* Can only be added to project(s) by project managers of a project
+* Have only READ access to projects they are members of
+
+#### Project Collaborators are members of a project, they have the following properties:
+
+* Can only be added to project(s) by project managers of a project
+* Have READ access and certain WRITE access on projects they are members of
+* Can Open and close issues on a project
+
+#### Project Managers have the following access on projects they create only:
+
+* Automatically becomes proect managers of project(s) they create
+* Have Full READ/WRITE access on project(s) they are members of
+* Can Add new members and revoke project membership
+* Can modify project membership access for other members of a project
+* Can update project details such as status, priority, completion date and others
+
+#### Project Administrators
+
+* They have overall administrative rights on all projects, they are more powerful than project managers and have access to some general reports not available to project managers.
+
+## Authors
+
+- [@greazleay](https://www.github.com/greazleay)
+
+
+## Tech Stack
+
+**Server:** Node
+
+* [TypeScript](https://www.typescriptlang.org/)
+* [NestJS](https://nestjs.com/)
+* [Fastify](https://fastify.io)
+* [PostgreSQL](https://www.postgresql.org/)
+* [TypeORM](https://typeorm.io/)
+* [Redis](https://redis.io/)
+* [Passportjs](https://www.passportjs.org/)
+* [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+* [CASL](https://casl.js.org/v5/en/)
+* [SendGrid Mail](https://www.npmjs.com/package/@sendgrid/mail)
+* [@nestjs/swagger](https://www.npmjs.com/package/@nestjs/swagger)
+* [Jest](https://jestjs.io/)
+
 
 ## Installation
 
 ```bash
-$ npm install
+  yarn
+  # or
+  npm install
 ```
 
 ## Running the app
 
 ```bash
 # development
+$ yarn start
+  # or
 $ npm run start
 
 # watch mode
+$ yarn start:dev
+  # or
 $ npm run start:dev
 
 # production mode
+$ yarn start:prod
+  # or
 $ npm run start:prod
 ```
 
-## Test
+## Documentation
 
-```bash
-# unit tests
-$ npm run test
+Full API Documentation is available [here](https://api-pmt.herokuapp.com/api-docs)
 
-# e2e tests
-$ npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+## API Reference
+
+Some of the available routes are listed below:
+
+#### Authentication Routes
+
+##### Auth Login
+
+```http
+  POST /auth/login
 ```
 
-## Support
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `email` | `string` | **Required**. Your Valid Email |
+| `password` | `string` | **Required**. Your Valid Password |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+##### Auth Logout
 
-## Stay in touch
+```http
+  POST /auth/logout
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `access_token`      | `string` | **Required**. Valid Access Token |
+
+##### Auth Refresh Token
+
+```http
+  POST /auth/refresh-token
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `cookies`      | `string` | **Required**. Valid Cookie containing refresh token |
+
+
+#### User Routes
+
+##### Register
+
+```http
+  POST /users/register
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `email` | `string` | **Required**. Your Valid Email |
+| `password` | `string` | **Required**. Password |
+| `firstName` | `string` | **Required**. User's first name |
+| `lastName` | `string` | **Required**. User's last name |
+
+##### Get User Info
+
+```http
+  GET /users/userinfo
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `access_token`      | `string` | **Required**. Valid Access Token |
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+[MIT](https://choosealicense.com/licenses/mit/)
+
+
+## 🔗 Links
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://pollaroid.net/)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/siezes)
+
+
+## Badges
+
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/greazleay/project-tracker-api/blob/main/LICENSE)
+[![Language](https://img.shields.io/github/languages/count/greazleay/project-tracker-api)](https://github.com/greazleay/project-tracker-api/)
