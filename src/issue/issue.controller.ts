@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query
 } from '@nestjs/common';
 import {
@@ -98,6 +99,32 @@ export class IssueController {
   })
   async reassignProjectIssue(@Body() reassignIssueDto: ReassignIssueDto, @UserDecorator() user: User) {
     return await this.issueService.reassignIssue(reassignIssueDto, user)
+  }
+
+  @Put('close-issue')
+  @ApiOperation({
+    description: 'Changes the status of an issue as resolved and capture the user who closed the issue and date closed'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue closed, user and date closed cpatured'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Specified Issue does not exist on the target Project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async closeIssue(@Body() closeIssueDto: IssueIdAndProjectIdDto, @UserDecorator() user: User) {
+    return await this.issueService.closeIssue(closeIssueDto, user)
   }
 
   @Get('all')

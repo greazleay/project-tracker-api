@@ -8,6 +8,7 @@ import { IssueIdAndProjectIdDto, IssueTitleAndProjectIdDto, ReassignIssueDto } f
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Issue } from './entities/issue.entity';
+import { IssueStatus } from './interfaces/issues.interface';
 
 @Injectable()
 export class IssueService {
@@ -91,6 +92,36 @@ export class IssueService {
 
       return { status: 'SUCCESS', message: `Issue Reassigned to user with ID ${userToReassignTo}` }
 
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async closeIssue(closeIssue: IssueIdAndProjectIdDto, user: User) {
+    try {
+
+      const { issueId, projectId } = closeIssue;
+
+      // Check if the project exists and user has required update right on the project
+      const project = await this.projectService.manageProjectIssues(projectId, user);
+
+      // Check if specified issueId exists on the project
+      if (!project.projectIssues.some(issue => issue.id === issueId))
+        throw new NotFoundException(`Issue with ID: '${issueId}' does not exist on ${project.projectName} project`);
+
+      const issueToClose = await this.issueRepository.findOneBy({ id: issueId })
+      if (!issueToClose) throw new NotFoundException(`Issue with ID: ${issueId} not found`)
+
+      issueToClose.issueStatus = IssueStatus.RESOLVED;
+      issueToClose.closedBy = user;
+      issueToClose.dateClosed = new Date()
+
+      return await this.issueRepository.save(issueToClose)
 
     } catch (error) {
       console.error(error);
