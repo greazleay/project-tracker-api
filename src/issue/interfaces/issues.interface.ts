@@ -19,3 +19,5 @@ export enum IssueType {
     RESOURCE = 'RESOURCE',                      // Relating to equipment, material, or people problems
     THIRD_PARTY = 'THIRD PARTY',                // Relating to issues with vendors, suppliers, or another outside party
 }
+
+export type IssueStatusWithoutClose = Exclude<IssueStatus, 'RESOLVED'>

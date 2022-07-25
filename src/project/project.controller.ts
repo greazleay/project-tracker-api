@@ -289,10 +289,7 @@ export class ProjectController {
     description: 'User does not have the Required Permission for the requested operation'
   })
   @ApiNotFoundResponse({
-    description: 'Project with the specified ID does not exist on the server'
-  })
-  @ApiNotFoundResponse({
-    description: 'Member to be added with the specified ID does not exist on the server'
+    description: 'Project or member to add with the specified IDs does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
@@ -318,10 +315,7 @@ export class ProjectController {
     description: 'User does not have the Required Permission for the requested operation'
   })
   @ApiNotFoundResponse({
-    description: 'Project with the specified ID does not exist on the server'
-  })
-  @ApiNotFoundResponse({
-    description: 'Member to be removed with the specified ID does not exist on the server'
+    description: 'Project or member to remove with the specified IDs does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
@@ -347,10 +341,7 @@ export class ProjectController {
     description: 'User does not have the Required Permission for the requested operation'
   })
   @ApiNotFoundResponse({
-    description: 'Project with the specified ID does not exist on the server'
-  })
-  @ApiNotFoundResponse({
-    description: 'Member ID with access to be modified does not exist on the server'
+    description: 'Project or member with the specified IDs does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'

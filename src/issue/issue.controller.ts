@@ -23,10 +23,10 @@ import {
 } from '@nestjs/swagger';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
-import { UpdateIssueDto } from './dto/update-issue.dto';
+import { UpdateIssueDto, UpdateIssueStatusDto } from './dto/update-issue.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { IssueIdAndProjectIdDto, IssueTitleAndProjectIdDto, ReassignIssueDto } from './dto/common-issue.dto';
+import { IssueIdAndProjectIdDto, IssueIdDto, IssueTitleAndProjectIdDto, ReassignIssueDto } from './dto/common-issue.dto';
 import { PaginateQuery } from 'nestjs-paginate';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/user/interfaces/user.interface';
@@ -39,93 +39,6 @@ import { Role } from 'src/user/interfaces/user.interface';
 @ApiBearerAuth()
 export class IssueController {
   constructor(private readonly issueService: IssueService) { }
-
-  @Post('open-new-issue')
-  @ApiOperation({
-    description: 'Opens a new issue on the target project specified in the request body with issue details'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Issue Opened with the specified details in the request body'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Body is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Target Project specified in the request body not found'
-  })
-  @ApiConflictResponse({
-    description: `Issue with the specified issueTitle already exists on the target project/
-    User to assign the issue to is not a member of the project/
-    Issue dueDate exceeds the Project completion date
-    `
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async create(@Body() createIssueDto: CreateIssueDto, @UserDecorator() user: User) {
-    return await this.issueService.create(createIssueDto, user);
-  };
-
-  @Patch('reassign-issue')
-  @ApiOperation({
-    description: 'Reassignes an existing issue to a new User'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Issue reassigned to the designated User'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Body is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Specified Issue does not exist on the target Project'
-  })
-  @ApiConflictResponse({
-    description: 'Desginated User already assigned to the Issue'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async reassignProjectIssue(@Body() reassignIssueDto: ReassignIssueDto, @UserDecorator() user: User) {
-    return await this.issueService.reassignIssue(reassignIssueDto, user)
-  }
-
-  @Put('close-issue')
-  @ApiOperation({
-    description: 'Changes the status of an issue as resolved and capture the user who closed the issue and date closed'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Issue closed, user and date closed cpatured'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Body is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Specified Issue does not exist on the target Project'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async closeIssue(@Body() closeIssueDto: IssueIdAndProjectIdDto, @UserDecorator() user: User) {
-    return await this.issueService.closeIssue(closeIssueDto, user)
-  }
 
   @Get('all')
   @Roles(Role.PROJECT_ADMIN)
@@ -219,14 +132,120 @@ export class IssueController {
   })
   async findAllOverdueIssues(@Query() query: PaginateQuery) {
     return await this.issueService.findAllOverdueIssues(query);
+  };
+
+  @Post('open-new-issue')
+  @ApiOperation({
+    description: 'Opens a new issue on the target project specified in the request body with issue details'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue Opened with the specified details in the request body'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Target Project specified in the request body not found'
+  })
+  @ApiConflictResponse({
+    description: `Issue with the specified issueTitle already exists on the target project/
+    User to assign the issue to is not a member of the project/
+    Issue dueDate exceeds the Project completion date
+    `
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async create(@Body() createIssueDto: CreateIssueDto, @UserDecorator() user: User) {
+    return await this.issueService.create(createIssueDto, user);
+  };
+
+  @Patch('reassign-issue')
+  @ApiOperation({
+    description: 'Reassignes an existing issue to a new User'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue reassigned to the designated User'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Specified Issue does not exist on the target Project'
+  })
+  @ApiConflictResponse({
+    description: 'Desginated User already assigned to the Issue'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async reassignProjectIssue(@Body() reassignIssueDto: ReassignIssueDto, @UserDecorator() user: User) {
+    return await this.issueService.reassignIssue(reassignIssueDto, user)
   }
 
-  @Patch(':id')
+  @Put('close-issue')
   @ApiOperation({
-    description: 'Updates Other Issue Properties, THIS ENDPOINT IS NOT YET COMPLETE'
+    description: 'Changes the status of an issue as resolved and capture the user who closed the issue and date closed'
   })
-  update(@Param('id') id: string, @Body() updateIssueDto: UpdateIssueDto) {
-    return this.issueService.update(+id, updateIssueDto);
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue closed, user and date closed cpatured'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Specified Issue does not exist on the target Project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async closeIssue(@Body() closeIssueDto: IssueIdAndProjectIdDto, @UserDecorator() user: User) {
+    return await this.issueService.closeIssue(closeIssueDto, user)
+  }
+
+  @Patch('update-issue-status/:issueId')
+  @ApiOperation({
+    description: 'Changes other status of an issue without closing the issue'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Issue Status updated'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Specified Issue does not exist on the target Project'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async update(@Param() params: IssueIdDto, @Body() updateIssueDto: UpdateIssueStatusDto, @UserDecorator() user: User) {
+    const { issueId } = params
+    return await this.issueService.updateIssueStatus(issueId, updateIssueDto, user);
   };
 
   @Delete(':id')

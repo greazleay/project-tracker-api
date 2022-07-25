@@ -6,6 +6,7 @@ import {
     ApiConsumes,
     ApiCookieAuth,
     ApiInternalServerErrorResponse,
+    ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
     ApiTags,
@@ -89,6 +90,9 @@ export class AuthController {
     })
     @ApiUnauthorizedResponse({
         description: 'Refresh Token supplied with the request has expired'
+    })
+    @ApiNotFoundResponse({
+        description: 'Cookie containing Refresh Token not supplied with the request or Refresh Token is empty'
     })
     @ApiInternalServerErrorResponse({
         description: 'An Internal Server Error occured while processing the request'
